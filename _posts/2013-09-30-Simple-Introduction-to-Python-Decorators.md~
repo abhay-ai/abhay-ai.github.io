@@ -1,0 +1,56 @@
+
+
+Most of the information about the decorators on the web is pretty confusing.  Here is my take on it.
+
+Let us take a function
+
+def add(a,b):
+    return a+b
+
+We call call this function using
+
+add(4,5)
+
+Which gives
+
+9
+
+No if we write a function which takes this function as input
+
+def dec(our_func):
+    def new_function(*args,**kwargs):
+        Result = our_func(*args,**kwargs)
+        print "The result is ",Result
+    return new_function
+
+We could now do this
+
+ADD = dec(add)
+
+ADD(4,5)
+
+The result is  9
+
+We can also overwrite the original function with the new function
+
+add = dec(add)
+
+now
+
+add(4,5)
+
+will give
+
+The result is 9
+
+We can also do this with the shortcut @ symbol in python
+
+@dec
+def add2(a,b):
+    return a+b
+
+add2(4,5)
+
+The result is 9
+
+
