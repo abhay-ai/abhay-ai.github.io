@@ -77,3 +77,51 @@ def add2(a,b):
 >> The result is 9
 {% endhighlight %}
 
+The first question that pops up is if it has a practical use case. Let us take a small example.
+
+We are interesded in measuring the time of any function. (I am aware of other methods which do not provide misleading results, but this method is used for simplicity.)
+
+
+{% highlight python %}
+import time
+
+def add(a,b):
+    start = time.clock()
+    c = a + b
+    stop = time.clock()
+    timetaken = stop - start
+    return c, timetaken
+
+{% endhighlight %}
+
+This will provide the time as shown below. However adding this to every function is repetetive. 
+
+{% highlight python %}
+>>> add(2,3)
+(5, 2.000000000002e-06)
+{% endhighlight %}
+
+So we can use decorators to solve the problem easily. First we define the decorator as shown below.
+
+{% highlight python %}
+def timeit_dec(our_func):
+    def new_function(*args,**kwargs):
+    	start = time.clock()
+        Result = our_func(*args,**kwargs)
+        stop = time.clock()
+	timetaken =  stop - start
+    	return Result, timetaken
+    return new_function
+{% endhighlight %}
+
+Now it is very simple to write any code which has to be timed.
+
+{% highlight python %}
+@timeit_dec
+def add2(a,b):
+    return a+b
+{% endhighlight %}
+
+The result will be identical to the longer add function we wrote (The time will be different.). 
+
+Of course python macros are still not as powerful as LISP, but they are pretty useful.
