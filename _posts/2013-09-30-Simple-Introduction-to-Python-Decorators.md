@@ -109,8 +109,8 @@ def timeit_dec(our_func):
     	start = time.clock()
         Result = our_func(*args,**kwargs)
         stop = time.clock()
-	timetaken =  stop - start
-    	return Result, timetaken
+        timetaken =  stop - start
+        return Result, timetaken
     return new_function
 {% endhighlight %}
 
@@ -123,5 +123,10 @@ def add2(a,b):
 {% endhighlight %}
 
 The result will be identical to the longer add function we wrote (The time will be different.). 
+
+{% highlight python %}
+>>> add2(2,3)
+(5, 3.9999999999970615e-06)
+{% endhighlight %}
 
 Of course python macros are still not as powerful as LISP, but they are pretty useful.
