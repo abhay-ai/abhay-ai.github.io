@@ -1,2 +1,15 @@
 markdown: rdiscount
 highlighter: pygments
+
+
+image:
+    source: images
+    output: generated
+    presets:
+        # Proportional preset
+        users:
+            attr:
+                class: user-portrait
+                itemprop: image
+            width: 800
+

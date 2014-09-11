@@ -6,5 +6,7 @@ title: A cloth falling over a bowl
 {{ page.title }}
 ================
 
-![Textile Render]({{ site.url }}/images/my_bowl.png)
+{% image 800xAUTO my_bowl.png alt="Textile Render" %}
+
+
 
