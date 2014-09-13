@@ -1,6 +1,6 @@
 h1. This is the data for my blog
 
-This is based on the jekyll layout by Tom Preston-Werner. You can fork the style from http://github.com/mojombo/jekyll or from my github page.
+This blog is based on the jekyll layout by Tom Preston-Werner. You can fork the style from http://github.com/mojombo/jekyll or from my github page.
 
 h1. License
 
