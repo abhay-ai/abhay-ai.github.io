@@ -2,14 +2,11 @@
 title: Technology as a service?
 ---
 
-{{ page.title }}
-================
-
 *Problems are constant, solutions change with time.*
 
 The most important problems have generally been constant, and technologies that arose to solve the problems have become popular immediately. The problems mentioned are not problems tackled by academia in general, but those that are faced by people in general.  One example is a smart thermostat.
 
-![]({{ site.url }}/images/technologies-in-search-of-a-problem-img1.jpeg)
+![](/images/technologies-in-search-of-a-problem-img1.jpeg)
 
 I always had a problem. I wanted the house warm and comfortable when I was home, but I wanted to save power when I wasn’t. Since my presence at home was unpredictable, it was hard for me to program my thermostat. The simple requirement I had for a thermostat was that I can switch it on 30 minutes before I came home. All other features are “nice to have“ but not the core requirement.
 
@@ -17,7 +14,7 @@ Nest thermostat became popular because it solved this problem for people like me
 
 ### **Jobs to be done**
 
-![]({{ site.url }}/images/technologies-in-search-of-a-problem-img2.jpeg)
+![](/images/technologies-in-search-of-a-problem-img2.jpeg)
 
 At that time, I understood that something was annoying me. However, I got clarity when I watched the [milkshake video](https://www.youtube.com/watch?v=sfGtw2C95Ms) from [Prof. Clayton Christensen](https://en.wikipedia.org/wiki/Clayton_Christensen).  In case you did not watch it, It talks about “jobs to be done“ approach where every product has a job for the customer. I will take another example to explain this below (Perhaps not as eloquent as Prof. Clayton Christensen).
 
@@ -25,7 +22,7 @@ When I was working, one day I went to the coffee room / office kitchen with my c
 
 I was fascinated by the whole process that I had to go research about it on the internet. I then purchased relatively cheaper equivalents online, got some coffee seeds from the local supermarket. I opened the packages on Saturday morning and started making (brewing) by coffee. My wife who had just woken up, came to the kitchen as was pretty shocked, perhaps because she has never seen me drinking coffee and because we have a nespresso machine at home exclusively used by her.
 
-![a. Manual Espresso machine (left) b. Automated high quality espresso machine (right)]({{ site.url }}/images/technologies-in-search-of-a-problem-img3.png)
+![a. Manual Espresso machine (left) b. Automated high quality espresso machine (right)](/images/technologies-in-search-of-a-problem-img3.png)
 
 The coffee that came from the manual machine depended on my skills, while a nespresso or an expensive automated machine were proven to provide a similar experience every time. I did not actually care about the coffee, but I was attracted towards the process. It provided me a satisfaction that automated machines did not provide.
 
@@ -57,7 +54,7 @@ Even after the release of the new versions of Ipads, there was criticism about t
 
 Another example that is popular is the introduction of Dropbox.
 
-![[The first response on hacker news when Dropbox was introduced. ](https://news.ycombinator.com/item?id=8863)]({{ site.url }}/images/technologies-in-search-of-a-problem-img4.png)
+![[The first response on hacker news when Dropbox was introduced. ](https://news.ycombinator.com/item?id=8863)](/images/technologies-in-search-of-a-problem-img4.png)
 
 Overtime it was clear that Dropbox did its job much better than any other method or combination of methods.
 
