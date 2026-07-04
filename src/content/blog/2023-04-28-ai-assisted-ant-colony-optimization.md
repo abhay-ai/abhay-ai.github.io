@@ -1,5 +1,4 @@
 ---
-layout: post
 title: AI-assisted Ant Colony Optimization with GPT-4 for Solving the Traveling Salesman Problem
 ---
 

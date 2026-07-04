@@ -1,0 +1,118 @@
+---
+import Layout from './Layout.astro';
+
+interface Props {
+  title: string;
+  date: string;
+  subtitle?: string;
+  recentPosts: Array<{
+    slug: string;
+    title: string;
+    date: string;
+  }>;
+}
+
+const { title, date, subtitle, recentPosts } = Astro.props;
+
+const formattedDate = new Date(date).toLocaleDateString('en-US', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric'
+});
+---
+
+<Layout title={`${title} | Abhay`}>
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">{title}</h1>
+      <div class="post-meta">
+        <span class="post-date">{formattedDate}</span>
+      </div>
+      {subtitle && <p class="post-subtitle"><em>{subtitle}</em></p>}
+    </header>
+
+    <div class="post-content">
+      <slot />
+    </div>
+  </article>
+
+  {recentPosts && recentPosts.length > 0 && (
+    <section class="related">
+      <h2>Recent Posts</h2>
+      <ul class="posts-list">
+        {recentPosts.map((post) => {
+          const postDate = new Date(post.date).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          });
+          return (
+            <li>
+              <span class="related-date">{postDate}</span> &raquo; <a href={`/posts/${post.slug}`}>{post.title}</a>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+</Layout>
+
+<style>
+  .post-header {
+    margin-bottom: 2rem;
+  }
+  
+  .post-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+  }
+  
+  .post-meta {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--muted-color);
+    margin-bottom: 1.5rem;
+  }
+  
+  .post-subtitle {
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--muted-color);
+    border-left: 3px solid var(--accent-color);
+    padding-left: 1rem;
+    margin: 1rem 0 2rem 0;
+  }
+  
+  .related {
+    margin-top: 4rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 2rem;
+  }
+  
+  .related h2 {
+    font-size: 1.35rem;
+    margin-bottom: 1rem;
+    border: none;
+    padding: 0;
+  }
+  
+  .posts-list {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  
+  .posts-list li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .related-date {
+    color: var(--muted-color);
+    font-family: monospace;
+    font-size: 0.85rem;
+    margin-right: 0.5rem;
+  }
+</style>

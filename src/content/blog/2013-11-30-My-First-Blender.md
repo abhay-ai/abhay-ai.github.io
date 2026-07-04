@@ -1,5 +1,4 @@
 ---
-layout: post
 title: A Cup of Coffee - My First Blender
 ---
 

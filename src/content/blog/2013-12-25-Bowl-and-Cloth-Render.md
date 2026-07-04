@@ -1,5 +1,4 @@
 ---
-layout: post
 title: A cloth falling over a bowl
 ---
 
@@ -7,4 +6,6 @@ title: A cloth falling over a bowl
 ================
 
 ![Textile Render]({{ site.url }}/images/my_bowl.png)
+
+
 

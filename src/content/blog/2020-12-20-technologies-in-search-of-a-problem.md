@@ -1,5 +1,4 @@
 ---
-layout: post
 title: Technology as a service?
 ---
 
