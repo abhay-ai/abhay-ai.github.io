@@ -1,0 +1,75 @@
+<svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .layer-rect { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; rx: 8px; }
+      .layer-text { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: var(--text); }
+      .layer-title { font-weight: 700; font-size: 15px; }
+      .layer-sub { font-size: 11px; fill: var(--muted); }
+      .arrow-v { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      
+      .accent-cyan { fill: var(--cyan-bg); stroke: var(--cyan-border); }
+      .accent-indigo { fill: var(--indigo-bg); stroke: var(--indigo-border); }
+      .accent-emerald { fill: var(--emerald-bg); stroke: var(--emerald-border); }
+      
+      :root {
+        --bg: #faf9f6;
+        --border: #cbd5e1;
+        --text: #0f172a;
+        --muted: #64748b;
+        --cyan-bg: #ecfeff;
+        --cyan-border: #0891b2;
+        --indigo-bg: #e0e7ff;
+        --indigo-border: #4f46e5;
+        --emerald-bg: #dcfce7;
+        --emerald-border: #059669;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121110;
+          --border: #334155;
+          --text: #f8fafc;
+          --muted: #94a3b8;
+          --cyan-bg: rgba(6, 182, 212, 0.12);
+          --cyan-border: #22d3ee;
+          --indigo-bg: rgba(99, 102, 241, 0.12);
+          --indigo-border: #818cf8;
+          --emerald-bg: rgba(16, 185, 129, 0.12);
+          --emerald-border: #34d399;
+        }
+      }
+    </style>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <!-- Solid Background to prevent transparent theme collisions -->
+  <rect width="600" height="320" fill="var(--bg)" />
+
+  <!-- Layer 1: Interface Layer -->
+  <g transform="translate(50, 20)">
+    <rect class="layer-rect accent-cyan" width="500" height="60" />
+    <text class="layer-text layer-title" x="250" y="27" text-anchor="middle" fill="var(--cyan-border)">1. Interface Layer (queen_mcp.py)</text>
+    <text class="layer-text layer-sub" x="250" y="45" text-anchor="middle">Exposes tools over Model Context Protocol (MCP) to LLM Agent Client</text>
+  </g>
+
+  <!-- Arrow 1-2 -->
+  <line class="arrow-v" x1="300" y1="80" x2="300" y2="110" />
+
+  <!-- Layer 2: Orchestration Layer -->
+  <g transform="translate(50, 120)">
+    <rect class="layer-rect accent-indigo" width="500" height="60" />
+    <text class="layer-text layer-title" x="250" y="27" text-anchor="middle" fill="var(--indigo-border)">2. Orchestration Layer (queen.py)</text>
+    <text class="layer-text layer-sub" x="250" y="45" text-anchor="middle">Python controller linking FEN inputs to PySwip bindings and Prolog queries</text>
+  </g>
+
+  <!-- Arrow 2-3 -->
+  <line class="arrow-v" x1="300" y1="180" x2="300" y2="210" />
+
+  <!-- Layer 3: Constraint Logic Layer -->
+  <g transform="translate(50, 220)">
+    <rect class="layer-rect accent-emerald" width="500" height="60" />
+    <text class="layer-text layer-title" x="250" y="27" text-anchor="middle" fill="var(--emerald-border)">3. Constraint Logic Layer (queen.pl)</text>
+    <text class="layer-text layer-sub" x="250" y="45" text-anchor="middle">Pure declarative SWI-Prolog ruleset modeling coordinate validation, checks, forks, &amp; pins</text>
+  </g>
+</svg>

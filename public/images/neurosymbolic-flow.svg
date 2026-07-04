@@ -1,0 +1,93 @@
+<svg viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .node-rect { fill: var(--bg); stroke: var(--border); stroke-width: 1.5; rx: 8px; }
+      .node-text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: var(--text); font-weight: 500; }
+      .node-title { font-weight: 700; }
+      .arrow { stroke: var(--muted); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .accent-cyan { fill: var(--cyan-bg); stroke: var(--cyan-border); }
+      .accent-indigo { fill: var(--indigo-bg); stroke: var(--indigo-border); }
+      .accent-emerald { fill: var(--emerald-bg); stroke: var(--emerald-border); }
+      
+      :root {
+        --bg: #faf9f6;
+        --border: #cbd5e1;
+        --text: #0f172a;
+        --muted: #64748b;
+        --cyan-bg: #ecfeff;
+        --cyan-border: #0891b2;
+        --indigo-bg: #e0e7ff;
+        --indigo-border: #4f46e5;
+        --emerald-bg: #dcfce7;
+        --emerald-border: #059669;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #121110;
+          --border: #334155;
+          --text: #f8fafc;
+          --muted: #94a3b8;
+          --cyan-bg: rgba(6, 182, 212, 0.12);
+          --cyan-border: #22d3ee;
+          --indigo-bg: rgba(99, 102, 241, 0.12);
+          --indigo-border: #818cf8;
+          --emerald-bg: rgba(16, 185, 129, 0.12);
+          --emerald-border: #34d399;
+        }
+      }
+    </style>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/>
+    </marker>
+  </defs>
+
+  <!-- Solid Background to prevent transparent theme collisions -->
+  <rect width="800" height="150" fill="var(--bg)" />
+
+  <!-- Node 1: Opponent's Move -->
+  <g transform="translate(10, 45)">
+    <rect class="node-rect" width="120" height="60" />
+    <text class="node-text" x="60" y="27" text-anchor="middle">Opponent's</text>
+    <text class="node-text node-title" x="60" y="44" text-anchor="middle">Move</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <line class="arrow" x1="130" y1="75" x2="160" y2="75" />
+
+  <!-- Node 2: Prolog Left Brain -->
+  <g transform="translate(170, 45)">
+    <rect class="node-rect accent-cyan" width="160" height="60" />
+    <text class="node-text node-title" x="80" y="27" text-anchor="middle" fill="var(--cyan-border)">Prolog Left Brain</text>
+    <text class="node-text" x="80" y="44" text-anchor="middle" style="font-size:11px;">Calculates Legal Moves</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <line class="arrow" x1="330" y1="75" x2="360" y2="75" />
+
+  <!-- Node 3: LLM Right Brain -->
+  <g transform="translate(370, 45)">
+    <rect class="node-rect accent-indigo" width="160" height="60" />
+    <text class="node-text node-title" x="80" y="27" text-anchor="middle" fill="var(--indigo-border)">LLM Right Brain</text>
+    <text class="node-text" x="80" y="44" text-anchor="middle" style="font-size:11px;">Formulates Strategy</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <line class="arrow" x1="530" y1="75" x2="560" y2="75" />
+
+  <!-- Node 4: Prolog Safety Net -->
+  <g transform="translate(570, 45)">
+    <rect class="node-rect accent-emerald" width="130" height="60" />
+    <text class="node-text node-title" x="65" y="27" text-anchor="middle" fill="var(--emerald-border)">Prolog Safety Net</text>
+    <text class="node-text" x="65" y="44" text-anchor="middle" style="font-size:11px;">Rule Compliance</text>
+  </g>
+
+  <!-- Arrow 4 -->
+  <line class="arrow" x1="700" y1="75" x2="720" y2="75" />
+
+  <!-- Node 5: Bot's Move -->
+  <g transform="translate(730, 45)">
+    <rect class="node-rect" width="60" height="60" rx="30" ry="30" />
+    <text class="node-text node-title" x="30" y="34" text-anchor="middle">Bot</text>
+    <text class="node-text" x="30" y="49" text-anchor="middle">Move</text>
+  </g>
+</svg>

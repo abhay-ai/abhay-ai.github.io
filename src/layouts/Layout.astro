@@ -37,6 +37,7 @@ const { title } = Astro.props;
   </script>
 </head>
 <body>
+  <div class="scroll-progress" id="scroll-progress"></div>
   <div class="site">
     <header class="header">
       <div class="brand">
@@ -60,6 +61,16 @@ const { title } = Astro.props;
       </div>
     </footer>
   </div>
+
+  <script is:inline>
+    window.addEventListener('scroll', () => {
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      const progressEl = document.getElementById('scroll-progress');
+      if (progressEl) progressEl.style.width = scrolled + '%';
+    });
+  </script>
 </body>
 </html>
 
@@ -73,17 +84,21 @@ const { title } = Astro.props;
     --code-bg: #f5f5f4;
     --link-color: #1d4ed8;
     --link-hover: #1e3a8a;
+    --grid-dot-color: rgba(120, 113, 108, 0.12);
+    --dashed-border-color: rgba(120, 113, 108, 0.35);
   }
 
   :root.dark {
-    --bg-color: #0f172a; /* Slate 900 */
-    --text-color: #f1f5f9; /* Slate 100 */
-    --accent-color: #f97316; /* Vibrant orange */
-    --muted-color: #94a3b8;
-    --border-color: #334155;
-    --code-bg: #1e293b;
-    --link-color: #60a5fa;
-    --link-hover: #93c5fd;
+    --bg-color: #121110; /* Warm obsidian black */
+    --text-color: #e7e5e4; /* Warm stone white */
+    --accent-color: #ea580c; /* Warm terracotta orange */
+    --muted-color: #a8a29e; /* Warm stone gray */
+    --border-color: #292524; /* Subtle dark border */
+    --code-bg: #1c1917; /* Slate-stone dark code bg */
+    --link-color: #f97316;
+    --link-hover: #ffedd5;
+    --grid-dot-color: rgba(168, 162, 158, 0.08);
+    --dashed-border-color: rgba(168, 162, 158, 0.25);
   }
 
   * {
@@ -100,16 +115,18 @@ const { title } = Astro.props;
 
   body {
     background-color: var(--bg-color);
+    background-image: radial-gradient(var(--grid-dot-color) 1px, transparent 1px);
+    background-size: 24px 24px;
     color: var(--text-color);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    line-height: 1.7;
+    line-height: 1.75;
     height: 100%;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Core Layout */
   .site {
-    max-width: 720px;
+    max-width: 1040px;
     margin: 3rem auto;
     padding: 0 1.5rem;
     display: flex;
@@ -117,12 +134,24 @@ const { title } = Astro.props;
     min-height: calc(100% - 6rem);
   }
 
+  /* Scroll Progress Indicator */
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--accent-color);
+    width: 0%;
+    z-index: 9999;
+    transition: width 0.1s ease-out;
+  }
+
   /* Header */
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1.5px dashed var(--dashed-border-color);
     padding-bottom: 1.5rem;
     margin-bottom: 2.5rem;
   }
@@ -160,8 +189,7 @@ const { title } = Astro.props;
   /* Content Wrapper */
   .content-wrapper {
     flex: 1;
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: left;
   }
 
   /* Typography Elements */
@@ -169,13 +197,13 @@ const { title } = Astro.props;
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
     color: var(--text-color);
-    margin-top: 2rem;
-    margin-bottom: 1rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
     line-height: 1.3;
   }
 
   h1 { font-size: 1.85rem; font-weight: 700; }
-  h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h2 { font-size: 1.5rem; border-bottom: 1.5px dashed var(--dashed-border-color); padding-bottom: 0.4rem; }
   h3 { font-size: 1.25rem; }
 
   p {

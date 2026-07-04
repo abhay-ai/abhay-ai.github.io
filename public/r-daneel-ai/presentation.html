@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Guardrails & Vision: Using Prolog as the Middleman</title>
+  
+  <!-- CSS for reveal.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+  
+  <!-- Theme for highlight.js code syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/monokai.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Custom presentation styles */
+    :root {
+      --bg-color: #0d1117;
+      --accent: #58a6ff;
+      --accent-rgb: 88, 166, 255;
+      --muted: #8b949e;
+      --border-color: #30363d;
+      
+      --red: #f85149;
+      --green: #3fb950;
+      --cyan: #39c5cf;
+      --gold: #d29922;
+      --purple: #bc8cff;
+      --pink: #ff7b72;
+    }
+    
+    .reveal {
+      font-family: 'Inter', sans-serif !important;
+      color: #c9d1d9 !important;
+      background-color: var(--bg-color) !important;
+    }
+    
+    .reveal section {
+      padding: 0 !important;
+    }
+    
+    .reveal h1 {
+      font-size: 2.2em !important;
+    }
+    
+    .reveal h2 {
+      font-family: 'Outfit', sans-serif !important;
+      color: #f0f6fc !important;
+      text-transform: none !important;
+      margin-top: 0 !important;
+      margin-bottom: 0.25em !important;
+      font-size: 1.5em !important;
+    }
+
+    .reveal h3 {
+      font-family: 'Outfit', sans-serif !important;
+      color: #f0f6fc !important;
+      text-transform: none !important;
+      margin-top: 0 !important;
+      margin-bottom: 0.25em !important;
+      font-size: 1.1em !important;
+    }
+    
+    .reveal pre {
+      margin: 0.3em auto !important;
+      width: 100% !important;
+      box-shadow: none !important;
+    }
+
+    .reveal pre code {
+      font-family: 'Fira Code', monospace !important;
+      border-radius: 6px;
+      font-size: 0.75em !important;
+      line-height: 1.3 !important;
+      padding: 0.6em !important;
+    }
+    
+    .reveal p {
+      font-size: 0.8em !important;
+      line-height: 1.4 !important;
+    }
+
+    .reveal p.sub {
+      font-size: 0.65em !important;
+      color: var(--muted) !important;
+      margin-top: -0.4em !important;
+      margin-bottom: 0.8em !important;
+    }
+    
+    .reveal ul, .reveal ol {
+      font-size: 0.75em !important;
+    }
+
+    /* Colors styling */
+    .c-muted { color: var(--muted) !important; }
+    .c-red { color: var(--red) !important; }
+    .c-cyan { color: var(--cyan) !important; }
+    .c-pink { color: var(--pink) !important; }
+    .c-gold { color: var(--gold) !important; }
+    
+    /* Grid / Layout */
+    .grid-2 {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .grid-3 {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      align-items: start;
+    }
+    .split {
+      display: flex !important;
+      gap: 1.2rem;
+      align-items: start;
+    }
+    .split > div {
+      flex: 1;
+    }
+    
+    /* Badges & Pills */
+    .badge {
+      display: inline-block;
+      padding: 0.25em 0.6em;
+      font-size: 0.55em !important;
+      font-weight: 600;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: 0.25rem;
+      margin-right: 0.4em;
+      border: 1px solid transparent;
+    }
+    .badge-blue {
+      background-color: rgba(56, 139, 253, 0.15) !important;
+      color: #58a6ff !important;
+      border-color: rgba(56, 139, 253, 0.4) !important;
+    }
+    .badge-green {
+      background-color: rgba(46, 160, 67, 0.15) !important;
+      color: #3fb950 !important;
+      border-color: rgba(46, 160, 67, 0.4) !important;
+    }
+    .badge-red {
+      background-color: rgba(248, 81, 73, 0.15) !important;
+      color: #f85149 !important;
+      border-color: rgba(248, 81, 73, 0.4) !important;
+    }
+    
+    .pill {
+      display: inline-block;
+      padding: 0.2em 0.7em;
+      font-size: 0.45em !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 2rem;
+      margin-bottom: 0.4em !important;
+      border: 1px solid transparent;
+    }
+    .pill-red {
+      background-color: rgba(248, 81, 73, 0.1) !important;
+      color: #ff7b72 !important;
+      border-color: rgba(248, 81, 73, 0.3) !important;
+    }
+    .pill-blue {
+      background-color: rgba(56, 139, 253, 0.1) !important;
+      color: #58a6ff !important;
+      border-color: rgba(56, 139, 253, 0.3) !important;
+    }
+    .pill-gold {
+      background-color: rgba(210, 153, 34, 0.1) !important;
+      color: #d29922 !important;
+      border-color: rgba(210, 153, 34, 0.3) !important;
+    }
+    .pill-green {
+      background-color: rgba(46, 160, 67, 0.1) !important;
+      color: #3fb950 !important;
+      border-color: rgba(46, 160, 67, 0.3) !important;
+    }
+    
+    /* Card */
+    .card {
+      background-color: rgba(22, 27, 34, 0.6) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 8px;
+      padding: 0.5rem 0.7rem !important;
+      margin-bottom: 0.4rem !important;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .card h4 {
+      font-size: 0.75em !important;
+      margin-top: 0 !important;
+      margin-bottom: 0.25em !important;
+      color: #f0f6fc !important;
+    }
+    .card p {
+      font-size: 0.6em !important;
+      line-height: 1.35 !important;
+      color: #8b949e !important;
+      margin: 0 !important;
+    }
+    
+    /* Terminal */
+    .terminal {
+      background-color: #010409 !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem !important;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.5em !important;
+      text-align: left;
+      line-height: 1.35 !important;
+      color: #c9d1d9;
+    }
+    
+    /* Blockquote/BQ */
+    .bq {
+      background-color: rgba(22, 27, 34, 0.4) !important;
+      border-left: 4px solid var(--accent) !important;
+      padding: 0.5rem 0.8rem !important;
+      border-radius: 0 6px 6px 0;
+      font-style: italic;
+      font-size: 0.68em !important;
+      line-height: 1.4 !important;
+      color: #c9d1d9;
+      text-align: left;
+      margin: 0.4em 0 !important;
+    }
+    
+    /* Statistics Grid */
+    .stat-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin: 0.5rem 0;
+    }
+    .stat-card {
+      background-color: rgba(22, 27, 34, 0.6) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 8px;
+      padding: 0.8rem !important;
+      text-align: center;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    .stat-number {
+      font-size: 1.5em !important;
+      font-weight: 800;
+      line-height: 1.1 !important;
+      margin-bottom: 0.1em;
+    }
+    .stat-label {
+      font-size: 0.55em !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #f0f6fc !important;
+      letter-spacing: 0.03em;
+    }
+    .stat-sub {
+      font-size: 0.45em !important;
+      color: var(--muted) !important;
+      margin-top: 0.3em;
+      line-height: 1.25 !important;
+    }
+    
+    /* Flowchart diagrams */
+    .flow-label {
+      display: block !important;
+      font-size: 0.5em !important;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted) !important;
+      margin-bottom: 0.15em !important;
+      text-align: left;
+    }
+    .flow {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem !important;
+      background-color: rgba(22, 27, 34, 0.3) !important;
+      padding: 0.4rem !important;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.03) !important;
+    }
+    .flow-node {
+      flex: 1;
+      background-color: rgba(22, 27, 34, 0.8) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 4px;
+      padding: 0.3rem !important;
+      font-size: 0.45em !important;
+      font-weight: 600;
+      color: var(--muted) !important;
+      text-align: center;
+    }
+    .flow-node.hl {
+      border-color: var(--cyan) !important;
+      background-color: rgba(57, 211, 83, 0.08) !important;
+      color: #fff !important;
+    }
+    .flow-arrow {
+      font-size: 0.6em !important;
+      font-weight: 900;
+      color: var(--muted) !important;
+    }
+    
+    /* Tables styling */
+    .reveal table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5em 0;
+      font-size: 0.6em !important;
+    }
+    .reveal th, .reveal td {
+      padding: 6px 10px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      text-align: left;
+    }
+    .reveal th {
+      background-color: rgba(255, 255, 255, 0.05);
+      font-weight: bold;
+      color: #f0f6fc;
+    }
+    .reveal strong {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="reveal">
+  <!-- Persistent Footer -->
+  <div style="position: absolute; bottom: 20px; left: 30px; font-size: 0.45em; color: var(--muted); font-family: 'Inter', sans-serif; z-index: 99; pointer-events: none; opacity: 0.6; letter-spacing: 0.05em; text-transform: uppercase;">
+    Abhaya Kammara &nbsp;·&nbsp; LLM Guardrails &amp; State Verification
+  </div>
+
+  <div class="slides">
+
+    
+    <section data-background-color="#0d1117">
+      <div style="text-align:center; padding: 1.5em 0;">
+        <div style="font-size:2.8em; margin-bottom:0.3em;">♟️🔮</div>
+        <h2 style="font-size:1.9em; line-height:1.2; color:#f0f6fc;">
+          LLM Guardrails &amp; Vision
+        </h2>
+        <h3 style="font-size:1.1em; color:var(--accent); margin-top:0.2em;">
+          Using Prolog as the Middleman
+        </h3>
+        <p style="color:var(--muted); font-size:0.75em; max-width:620px; margin:1.2em auto 1.8em; line-height:1.55;">
+          Guaranteed constraint enforcement in LLM agents: A case study in
+          <strong>SWI-Prolog</strong> and <strong>state-space verification</strong>.
+        </p>
+        <p style="font-size:0.62em; color:#fff; font-weight:600; margin-top:-0.8em; margin-bottom:1.5em; letter-spacing:0.05em; text-transform:uppercase; opacity:0.85;">
+          Presented by Abhaya Kammara
+        </p>
+        <span class="badge badge-blue">Queen Engine</span>
+        <span class="badge badge-green">R_Daneel_AI</span>
+        <span class="badge badge-red">SWI-Prolog + LLM</span>
+      </div>
+      <aside class="notes">
+        Welcome. Today I'm sharing a case study in resolving a key limitation of LLMs:
+        their inability to consistently enforce state constraints. We will look at how
+        pairing a declarative logic language with probabilistic models solves this problem.
+        I'll go through four acts and leave plenty of time for questions.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <h2>Today's Agenda</h2>
+      <p class="sub">Four parts · ~25 minutes · questions welcome throughout</p>
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="card">
+          <h4>① The Problem</h4>
+          <p>Why LLMs need guardrails and the architectural limits of reject-only systems</p>
+        </div>
+        <div class="card">
+          <h4>② Prolog as the Tool</h4>
+          <p>What Prolog is, how it works, and its role as a deterministic validator</p>
+        </div>
+        <div class="card">
+          <h4>③ Chess as the Testbed</h4>
+          <p>Evaluating spatial logic failures and the Queen validation architecture</p>
+        </div>
+        <div class="card">
+          <h4>④ Results &amp; Generalisation</h4>
+          <p>Benchmark analysis, multi-domain applications, and key takeaways</p>
+        </div>
+      </div>
+      <aside class="notes">Quick roadmap so everyone knows where we're going.</aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-red">Part 1 — The Problem</span>
+      <h2>What Are LLM Guardrails?</h2>
+      <p class="sub">Mechanisms that constrain, validate, or correct AI output <em>before</em> it reaches the real world</p>
+
+      <div class="grid-2">
+        <div>
+          <p style="font-size:0.65em; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:0.4em;">Common types</p>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>🚫 Content Filters</h4>
+            <p>Block categories of output — NSFW, PII, competitor names</p>
+          </div>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>📐 Output Schemas</h4>
+            <p>Enforce JSON structure, valid enums, required fields</p>
+          </div>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>🔍 Retrieval Grounding</h4>
+            <p>Only answer from verified documents (RAG)</p>
+          </div>
+          <div class="card fragment" style="border-color:var(--accent);">
+            <h4>⚡ Symbolic Validators</h4>
+            <p>Formal logic checks (conceptually like Design Rule Checking for outputs) — <strong style="color:var(--accent);">our focus today</strong></p>
+          </div>
+        </div>
+
+        <div class="fragment">
+          <p style="font-size:0.65em; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:0.4em;">The root cause</p>
+          <div class="card" style="margin-bottom:0.5em;">
+            <p>LLMs are <strong class="c-accent">probabilistic</strong> — they predict plausible tokens, not verified truths.</p>
+          </div>
+          <div class="terminal">
+            <span class="c-muted"># An LLM will confidently…</span><br>
+            → Invoice a customer <span class="c-red">-$400</span><br>
+            → Book a meeting on <span class="c-red">Feb 30th</span><br>
+            → Insert string into integer database column<br>
+            → Call API with missing required fields
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Guardrails are anything sitting between the model's output and the real world.
+        Content filters are the most common. Symbolic validators are different — they
+        use formal logic to check correctness against explicit rules. We focus on symbolic validation in this case study.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-red">Part 1 — The Problem</span>
+      <h2>The Hallucination Gap</h2>
+      <p class="sub">LLMs have great intuition and <span class="c-red">terrible eyesight</span></p>
+
+      <div class="split" style="margin-top:0.6em;">
+        <div>
+          <p style="font-size:0.65em; color:var(--cyan); font-weight:700; margin-bottom:0.4em;">✅ LLMs are strong at</p>
+          <ul style="list-style:none; padding:0;">
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">🧠 Strategy &amp; high-level planning</li>
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">💬 Natural language explanation</li>
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">📚 Domain knowledge &amp; heuristics</li>
+            <li class="fragment" style="padding:0.3em 0;">🔗 Connecting disparate concepts</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:0.65em; color:var(--red); font-weight:700; margin-bottom:0.4em;">❌ LLMs are weak at</p>
+          <ul style="list-style:none; padding:0;">
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">📐 Spatial geometry, routing, &amp; keep-out zones</li>
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">📋 Exact rule compliance</li>
+            <li class="fragment" style="padding:0.3em 0; border-bottom:1px solid #21262d;">🔢 Precise arithmetic</li>
+            <li class="fragment" style="padding:0.3em 0;">🔁 Consistent state tracking over time</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bq fragment" style="margin-top:0.9em;">
+        The gap between "knows the rules" and "reliably follows them" is exactly where symbolic guardrails live.
+      </div>
+      <aside class="notes">
+        LLMs absorbed millions of chess games and thousands of pages of theory.
+        They can write beautiful prose about the Queen's Gambit. But ask them to
+        track a board state over 20 moves and they will start proposing invalid coordinates.
+        Consistent spatial state tracking is a fundamental limitation of pure transformer models.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-red">Part 1 — The Problem</span>
+      <h2>Two Guardrail Philosophies</h2>
+      <p class="sub">Comparing the error recovery rates of reject-only and explanatory feedback loops</p>
+
+      <div class="grid-2" style="margin-top:0.8em;">
+        <div>
+          <div class="card" style="border-color:var(--red);">
+            <h4 style="color:var(--red);">🚫 Blocking (reject-only)</h4>
+            <p style="font-size:0.8em; color:#c9d1d9;">"HTTP 400: Bad Request."</p>
+            <p style="margin-top:0.4em;">The LLM knows it failed but not <em>why</em>. It retries blindly, loops, guesses fields, wastes tokens, and eventually deadlocks.</p>
+          </div>
+          <div class="fragment" style="margin-top:0.6em; font-size:0.65em; color:var(--muted); padding:0 0.2em;">
+            Raw baseline: <span class="c-red">High failure rates</span>. Frequent execution timeouts.
+          </div>
+        </div>
+
+        <div>
+          <div class="card fragment" style="border-color:var(--cyan);">
+            <h4 style="color:var(--cyan);">💡 Explaining (structured feedback)</h4>
+            <p style="font-size:0.8em; color:#c9d1d9;">"No — and here is exactly why."</p>
+            <p style="margin-top:0.4em;"><em>"Cannot place cell. Coordinates [X:12-16, Y:4] overlap with net layout keep-out zone (Cell_B reserved boundary)."</em></p>
+          </div>
+          <div class="fragment" style="margin-top:0.6em; font-size:0.65em; color:var(--muted); padding:0 0.2em;">
+            With Explanatory Guardrail: <span class="c-cyan">Immediate self-correction</span>. Infinite loops eliminated.
+          </div>
+        </div>
+      </div>
+
+      <div class="bq fragment" style="margin-top:0.9em;">
+        "Our goal is not to control the LLM, but to show direction when it is confused."
+        <span class="c-muted" style="font-style:normal;">— R_Daneel_AI design principle</span>
+      </div>
+      <aside class="notes">
+        This is the core thesis. A guardrail that only says "no" forces random retries.
+        A guardrail that explains *why* the placement is invalid (e.g. naming the overlapping net or boundary block)
+        gives the LLM something it can reason with on the next attempt. This structured feedback
+        is what eliminates retry loops.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Part 2 — The Tool: Prolog</span>
+      <h2>What Is Prolog?</h2>
+      <p class="sub">A logic programming language from 1972 — you declare <em>what is true</em>, not <em>how to compute it</em></p>
+
+      <div class="split" style="margin-top:0.4em;">
+        <div>
+          <pre><code class="language-prolog">% ── Facts: things that are true ──
+parent(tom, bob).
+parent(bob, ann).
+
+% ── Rule: what makes something true ──
+grandparent(X, Z) :-
+    parent(X, Y),
+    parent(Y, Z).
+
+% ── Queries: ask the engine ──
+?- grandparent(tom, ann).
+% → true ✓
+
+?- grandparent(tom, Who).
+% → Who = ann ✓
+
+?- grandparent(Who, ann).
+% → Who = tom ✓  (works both ways!)</code></pre>
+        </div>
+        <div>
+          <p style="font-size:0.65em; color:var(--muted); font-weight:700; margin-bottom:0.4em; text-transform:uppercase; letter-spacing:0.05em;">How it works</p>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>① Assert facts</h4>
+            <p>State what is true about your domain as simple statements</p>
+          </div>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>② Define rules</h4>
+            <p>Write logical relationships using "if → then" Horn clauses</p>
+          </div>
+          <div class="card fragment" style="margin-bottom:0.4em;">
+            <h4>③ Ask queries</h4>
+            <p>The engine proves or disproves, and finds <em>all</em> solutions via automatic backtracking</p>
+          </div>
+          <div class="fragment" style="font-size:0.65em; color:var(--muted); padding:0.4em 0;">
+            No loops. No algorithms. No "how". Just "what."
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        You don't code a loop or function. You say "a grandparent X of Z is any X who is
+        a parent of some Y who is a parent of Z." Then you ask questions.
+        The engine figures out the rest. Fundamentally different from Python or Java.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Part 2 — The Tool: Prolog</span>
+      <h2>Why Prolog Is Perfect for Guardrails</h2>
+      <p class="sub">A comparison of Prolog's properties against transformer limitations</p>
+
+      <div class="grid-2" style="margin-top:0.8em;">
+        <div class="card fragment">
+          <h4>🎯 Deterministic</h4>
+          <p>Same query → same answer. Identical inputs yield identical proof paths, eliminating variance.</p>
+        </div>
+        <div class="card fragment">
+          <h4>🔄 Exhaustive by design</h4>
+          <p>Backtracking automatically finds <em>all</em> solutions — perfect for verifying grid alignments and multi-dimensional layout boundaries.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📖 Natively explainable</h4>
+          <p>The proof chain <em>is</em> the explanation. The logic resolution path maps directly to human-readable text.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📝 Declarative &amp; readable</h4>
+          <p>Domain and business rules written in Prolog read almost like official specifications, simplifying system maintenance.</p>
+        </div>
+      </div>
+
+      <div class="bq fragment" style="margin-top:1em;">
+        Declarative logic systems provide the formal guarantees that probabilistic systems lack.
+      </div>
+      <aside class="notes">
+        These four properties directly address the native weaknesses of LLM agents.
+        LLMs are probabilistic, cannot enumerate exhaustively, and struggle with multi-step constraints.
+        Prolog is deterministic, exhaustive, and natively explainable. 
+        This results in a highly complementary system configuration.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Part 2 — The Tool: Prolog</span>
+      <h2>LLM + Prolog: A Natural Pairing</h2>
+      <p class="sub">System 1 intuition + System 2 logic (Kahneman would approve)</p>
+
+      <table style="margin-top:0.8em;">
+        <thead>
+          <tr>
+            <th></th>
+            <th style="color:var(--accent);">🧠 LLM — Intuition</th>
+            <th style="color:var(--cyan);">⚙️ Prolog — Logic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="fragment"><td class="c-muted">Nature</td><td>Probabilistic prediction</td><td>Deterministic proof</td></tr>
+          <tr class="fragment"><td class="c-muted">Best at</td><td>Strategy &amp; planning</td><td>Rule enforcement</td></tr>
+          <tr class="fragment"><td class="c-muted">Language</td><td>Natural language</td><td>Formal constraints</td></tr>
+          <tr class="fragment"><td class="c-muted">State tracking</td><td>Hallucinates over time</td><td>Perfect state model</td></tr>
+          <tr class="fragment"><td class="c-muted">Explanations</td><td>Can generate (imperfectly)</td><td>Produces natively</td></tr>
+        </tbody>
+      </table>
+
+      <p class="fragment" style="font-size:0.68em; color:var(--muted); margin-top:0.8em; text-align:center;">
+        This architecture is called <strong style="color:#f0f6fc;">neuro-symbolic AI</strong> — an active research frontier at DeepMind, MIT, CMU.
+        We built a working instance with off-the-shelf tools.
+      </p>
+      <aside class="notes">
+        This pairing represents a neuro-symbolic architecture. The key takeaway is that
+        it can be implemented using standard, existing open-source libraries. Prolog handles
+        formal verification, while the LLM handles high-level heuristic planning.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>Chess: The Perfect Testbed</h2>
+      <p class="sub">Completely formal rules + enormous state space + unambiguous win/loss signal</p>
+
+      <div class="split" style="margin-top:0.6em;">
+        <div>
+          <p style="font-size:0.65em; color:var(--gold); font-weight:700; margin-bottom:0.4em;">Why chess isolates the problem cleanly</p>
+          <ul>
+            <li class="fragment">LLMs absorbed <em>millions</em> of games in training — they know chess theory</li>
+            <li class="fragment">Yet they routinely output <span class="c-red">illegal moves</span></li>
+            <li class="fragment"><span class="c-red">"Teleport" pieces</span> to geometrically impossible squares</li>
+            <li class="fragment"><span class="c-red">Ignore checks</span> — leaving the King hanging</li>
+            <li class="fragment">A move is either legal or it isn't. <strong>Perfect ground truth.</strong></li>
+          </ul>
+        </div>
+
+        <div class="fragment">
+          <p style="font-size:0.65em; color:var(--red); font-weight:700; margin-bottom:0.4em;">📉 Raw LLM baseline (500 Lichess puzzles)</p>
+          <div class="card" style="border-color:var(--red);">
+            <div style="display:flex; justify-content:space-between; font-size:0.75em; margin-bottom:0.4em;">
+              <span class="c-muted">Puzzles solved</span>
+              <span class="c-red" style="font-weight:700;">80 / 500 (16%)</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.75em; margin-bottom:0.4em;">
+              <span class="c-muted">Tactical Elo</span>
+              <span class="c-red" style="font-weight:700;">~673</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.75em;">
+              <span class="c-muted">Avg retries per move</span>
+              <span class="c-red" style="font-weight:700;">6+</span>
+            </div>
+            <p style="margin-top:0.6em; font-size:0.65em;">673 Elo indicates severe tactical limitations</p>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Chess is a useful testbed because it has zero ambiguity. A move is legal or it is not.
+        This allows us to measure improvement using standard Elo metrics, providing a 
+        quantifiable evaluation of the validation layer's performance.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>Introducing Queen 👑</h2>
+      <p class="sub">A symbolic chess referee and tactical analyzer built in SWI-Prolog</p>
+
+      <div class="bq">
+        Queen is not an engine that <em>plays</em> chess.<br>
+        It's a <strong>referee that understands chess</strong> — and can explain every ruling.
+      </div>
+
+      <div class="grid-2" style="margin-top:0.6em;">
+        <div class="card fragment">
+          <h4>✅ Move Legality + Explanation</h4>
+          <p>Validates any move in standard coordinates. Returns a structured plain-English explanation if illegal — not just a boolean.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📌 Pin Detection</h4>
+          <p>Identifies "pinned" pieces (pieces blocking an attack on the King that are illegal to move) and explains the check block.</p>
+        </div>
+        <div class="card fragment">
+          <h4>⚔️ Fork &amp; Discovered Attack</h4>
+          <p>Finds "forks" (one piece attacking two targets) and "discovered attacks" (moving a blocking piece to open a slide line of fire).</p>
+        </div>
+        <div class="card fragment">
+          <h4>♟️ Full Tactical Summary</h4>
+          <p>Aggregates checks, pins, threats, forks, material balance into one structured JSON payload the LLM can read directly.</p>
+        </div>
+      </div>
+      <aside class="notes">
+        The key distinction: Stockfish is a probabilistic search solver (tells you the BEST move). 
+        Queen is a design rule checker (tells the LLM what is LEGAL and WHY). 
+        Analogy for physical design: validate_move is a DRC check, pin detection is path blockage, 
+        and threats are layout routing conflicts.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>Queen's Three-Layer Architecture</h2>
+      <p class="sub">Each layer has exactly one job — cleanly separable and testable</p>
+
+      <div style="display:flex; flex-direction:column; gap:0.7em; margin-top:0.8em;">
+
+        <div class="card fragment" style="border-color:var(--purple);">
+          <div class="grid-2">
+            <div>
+              <h4 style="color:var(--purple);">① Constraint Logic Layer</h4>
+              <code style="background:rgba(167,139,250,0.12); color:var(--purple);">queen.pl</code>
+            </div>
+            <p>Pure SWI-Prolog. Chess rules as logical facts: move legality, path blockers, check/mate, pins, forks, discovered attacks. No Python, no I/O.</p>
+          </div>
+        </div>
+
+        <div class="card fragment" style="border-color:var(--accent);">
+          <div class="grid-2">
+            <div>
+              <h4>② Orchestration Layer</h4>
+              <code>queen.py</code>
+            </div>
+            <p>Python bridge via <code>pyswip</code>. Parses FEN notation into Prolog variables, runs queries, returns structured Python dicts. Also installable as <code>pip install queen-chess</code>.</p>
+          </div>
+        </div>
+
+        <div class="card fragment" style="border-color:var(--cyan);">
+          <div class="grid-2">
+            <div>
+              <h4 style="color:var(--cyan);">③ Interface Layer</h4>
+              <code style="background:rgba(57,211,83,0.12); color:var(--cyan);">queen_mcp.py</code>
+            </div>
+            <p>FastMCP server. Exposes Queen as callable tools over the Model Context Protocol — any compatible LLM host (Claude, Gemini…) can call Queen like a function.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="fragment" style="font-size:0.62em; color:var(--muted); margin-top:0.7em;">
+        💡 <strong style="color:#f0f6fc;">MCP</strong> = Model Context Protocol — a universal "USB standard" for LLM tools.
+        Write the tool once, use it with any compatible host.
+      </p>
+      <aside class="notes">
+        The Prolog file is the brain — pure logic. Python is the glue — speaks both languages.
+        MCP is the USB socket — plug-and-play with any LLM. Each has one job. Swap any layer
+        independently.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>Explanatory Guardrails in Action</h2>
+      <p class="sub">Side-by-side: what the LLM gets without vs. with Queen</p>
+
+      <div class="grid-2" style="margin-top:0.6em;">
+        <div>
+          <p style="font-size:0.65em; color:var(--red); font-weight:700; margin-bottom:0.3em;">❌ Without Queen — reject only</p>
+          <div class="terminal">
+            <span class="c-muted">LLM: </span>a7a6<br>
+            <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
+            <span class="c-muted">LLM: </span>d7d6<br>
+            <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
+            <span class="c-muted">LLM: </span>b8c6<br>
+            <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
+            <span class="c-muted" style="font-style:italic;">… 6+ retries … deadlock …</span>
+          </div>
+        </div>
+
+        <div>
+          <p style="font-size:0.65em; color:var(--cyan); font-weight:700; margin-bottom:0.3em;">✅ With Queen — structured explanation</p>
+          <div class="terminal">
+            <span class="c-muted">LLM: </span>a7a6<br>
+            <span class="c-cyan">Queen: ILLEGAL — King on e8 is in CHECK<br>
+            from Queen on h5. You must move the<br>
+            King, block the check, or capture<br>
+            the attacker. A pawn move does not<br>
+            resolve the check.</span><br><br>
+            <span class="c-muted">LLM: </span><span class="c-cyan">e8d7 ✓  (King evades, 1 retry)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fragment" style="margin-top:0.3em;">
+        <p style="font-size:0.5em; color:var(--muted); margin-bottom:0.1em; text-align:left;">The Prolog predicate producing that explanation:</p>
+        <pre style="margin:0 !important; font-size:0.42em !important; padding:0.3em !important;"><code class="language-prolog">?- validate_and_explain(State, 1-7, 1-6, Explanation).
+% Explanation = "CRITICAL FAILURE: Your King is in CHECK! a7→a6 fails to protect."</code></pre>
+      </div>
+      <aside class="notes">
+        The left column shows a generic reject-only loop. The right column shows how
+        structured explanations give the LLM context to self-correct. We will show how
+        this applies to chess pins in a moment. One retry instead of six. The explanation comes from the Prolog proof
+        chain — no extra code needed.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>Giving the LLM "Vision"</h2>
+      <p class="sub">Queen pre-digests the board into structured facts the LLM can reason about directly</p>
+
+      <div class="split" style="margin-top:0.5em;">
+        <div>
+          <p style="font-size:0.65em; color:var(--muted); font-weight:700; margin-bottom:0.4em; text-transform:uppercase; letter-spacing:0.05em;">8 tools via MCP</p>
+          <div style="font-size:0.5em; display:grid; grid-template-columns: 1fr 1fr; gap:0.25em;">
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">validate_move(fen, move_uci)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_legal_moves(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_game_status(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_pinned_pieces(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_threats(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_forks(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0;"><code style="color:#ff7b72; background:rgba(248,81,73,0.1); font-size:0.85em;">get_discovered_attacks(fen)</code></div>
+            <div class="card" style="padding:0.3em 0.5em; margin-bottom:0; border-color:var(--accent);"><code style="color:var(--accent); background:rgba(88,166,255,0.1); font-size:0.85em;">get_tactical_summary(fen)</code></div>
+          </div>
+        </div>
+
+        <div>
+          <p style="font-size:0.65em; color:var(--muted); font-weight:700; margin-bottom:0.4em; text-transform:uppercase; letter-spacing:0.05em;">Example: tactical summary output</p>
+          <pre><code class="language-json">{
+  "in_check": false,
+  "pinned_pieces": ["c6"],
+  "threatened_pieces": [
+    { "piece": "knight", "square": "c6" }
+  ],
+  "discovered_attacks": [
+    {
+      "blocker": "e5",
+      "attacker": "e1",
+      "target":   "e7"
+    }
+  ],
+  "forks": {
+    "existing": [],
+    "moves_creating_forks": []
+  }
+}</code></pre>
+          <p style="font-size:0.62em; color:var(--muted); margin-top:0.4em;">
+            The LLM reads this JSON and immediately knows: knight is pinned,
+            discovered attack opportunity exists on the e-file. No hallucination needed.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        This represents the state-injection layer. While transformer architectures struggle with absolute
+        spatial positions, they excel at reasoning over structured relations. We pre-compute
+        these relations in Prolog and feed them as JSON features.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>R_Daneel_AI: The Full System</h2>
+      <p class="sub">Queen wraps both ends of the LLM — pre-feed and post-validate</p>
+
+      <div style="display:flex; flex-direction:column; gap:0.8em; margin-top:0.9em;">
+
+        <div>
+          <span class="flow-label">Traditional — Stockfish</span>
+          <div class="flow">
+            <div class="flow-node">Opponent's Move</div><span class="flow-arrow">→</span>
+            <div class="flow-node">Brute-force Search</div><span class="flow-arrow">→</span>
+            <div class="flow-node">Heuristic Eval</div><span class="flow-arrow">→</span>
+            <div class="flow-node" style="border-color:var(--pink); color:var(--pink);">Bot's Move</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="flow-label">Neural Mimicry — Maia Chess</span>
+          <div class="flow">
+            <div class="flow-node">Opponent's Move</div><span class="flow-arrow">→</span>
+            <div class="flow-node">Deep Policy Network</div><span class="flow-arrow">→</span>
+            <div class="flow-node">Move Mimicry</div><span class="flow-arrow">→</span>
+            <div class="flow-node" style="border-color:var(--pink); color:var(--pink);">Bot's Move</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="flow-label" style="color:var(--cyan);">Neuro-Symbolic — R_Daneel_AI ← ours</span>
+          <div class="flow" style="border-color:var(--cyan);">
+            <div class="flow-node">Opponent's Move</div><span class="flow-arrow">→</span>
+            <div class="flow-node hl">Queen: Legal Moves + Tactics</div><span class="flow-arrow">→</span>
+            <div class="flow-node">LLM Strategic Plan</div><span class="flow-arrow">→</span>
+            <div class="flow-node hl">Queen: Safety Guard</div><span class="flow-arrow">→</span>
+            <div class="flow-node" style="border-color:var(--cyan); color:var(--cyan);">Bot's Move ✓</div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="fragment" style="font-size:0.66em; color:var(--muted); margin-top:0.8em;">
+        Queen appears <strong style="color:#f0f6fc;">twice</strong>: once to give the LLM a legal move set and tactical context, once to
+        validate the chosen move and explain if it fails. A complete guardrail loop.
+      </p>
+      <aside class="notes">
+        The validation layer is applied twice: once to inject valid state parameters pre-inference, and once as an execution gate post-inference. This dual-wrap pattern prevents validation bypass.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-green">Part 4 — Results</span>
+      <h2>Benchmark: The Numbers</h2>
+      <p class="sub">500 Lichess puzzles · 600–1500 Elo · Gemma 26B · pure LLM vs. + Queen</p>
+
+      <div class="grid-2" style="margin-top:0.5em; align-items:center; gap:1.5em;">
+        <div style="display:flex; flex-direction:column; gap:0.4em;">
+          <div class="stat-card fragment" style="padding:0.4em !important;">
+            <div class="stat-number c-red" style="font-size:1.1em !important;">16%</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Raw LLM Accuracy</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">80/500 puzzles · 673 Elo</div>
+          </div>
+          <div class="stat-card fragment" style="border-color:var(--cyan); padding:0.4em !important;">
+            <div class="stat-number c-cyan" style="font-size:1.1em !important;">80.8%</div>
+            <div class="stat-label" style="font-size:0.45em !important;">+ Queen Accuracy</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">404/500 puzzles · 1478 Elo</div>
+          </div>
+          <div class="stat-card fragment" style="border-color:var(--gold); padding:0.4em !important;">
+            <div class="stat-number c-gold" style="font-size:1.1em !important;">+805</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Elo Points Gained</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Zero model retraining</div>
+          </div>
+        </div>
+
+        <table class="fragment" style="margin:0 !important; font-size:0.48em !important; width:100%;">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th style="color:var(--red);">Raw LLM</th>
+              <th style="color:var(--cyan);">+ Queen</th>
+              <th style="color:var(--gold);">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Puzzles Solved</td><td>80 / 500</td><td><strong>404 / 500</strong></td><td class="c-cyan">+324</td></tr>
+            <tr><td>Accuracy</td><td>16.0%</td><td><strong>80.8%</strong></td><td class="c-cyan">+64.8 pts</td></tr>
+            <tr><td>Tactical Elo</td><td>673</td><td><strong>1478</strong></td><td class="c-cyan">+805 Elo</td></tr>
+            <tr><td>Avg Retries / Move</td><td>6+</td><td><strong>0.18</strong></td><td class="c-cyan">Pruned</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <aside class="notes">
+        Key takeaway: an +805 Elo improvement achieved solely through symbolic validation,
+        without modifying model weights or extending training datasets.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-green">Part 4 — Results</span>
+      <h2>Extended Benchmark: 1,000 Puzzles</h2>
+      <p class="sub">Full difficulty range (600–2500 Elo) · DeepSeek v4 vs. Gemma 26B</p>
+
+      <div class="grid-2" style="margin-top:0.5em; align-items:center; gap:1.5em;">
+        <div style="display:flex; flex-direction:column; gap:0.4em;">
+          <div class="stat-card" style="padding:0.4em !important;">
+            <div class="stat-number c-accent" style="font-size:1.1em !important;">58.1%</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Both models (tied)</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Full 1,000-puzzle suite</div>
+          </div>
+          <div class="stat-card" style="border-color:var(--cyan); padding:0.4em !important;">
+            <div class="stat-number c-cyan" style="font-size:1.1em !important;">+40 pts</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Accuracy delta</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">18.1% → 58.1% (LLM → +Queen)</div>
+          </div>
+          <div class="stat-card" style="border-color:var(--pink); padding:0.4em !important;">
+            <div class="stat-number c-pink" style="font-size:1.1em !important;">1765</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Peak Elo</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Bisection method over suite</div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.4em;">
+          <div class="card" style="border-color:var(--purple); padding:0.4em 0.6em !important; margin-bottom:0 !important;">
+            <h4 style="color:var(--purple); font-size:0.68em !important; margin-bottom:0.1em !important;">Gemma 26B — Consistency</h4>
+            <p style="font-size:0.54em !important; line-height:1.3 !important;">Highest accuracy in the 600–1500 Elo range. 80.8% on the easy bracket.</p>
+          </div>
+          <div class="card" style="border-color:var(--cyan); padding:0.4em 0.6em !important; margin-bottom:0 !important;">
+            <h4 style="color:var(--cyan); font-size:0.68em !important; margin-bottom:0.1em !important;">DeepSeek v4 — Complexity</h4>
+            <p style="font-size:0.54em !important; line-height:1.3 !important;">Outperforms Gemma in the 1600–2500 Elo range by up to +12%.</p>
+          </div>
+          <p class="fragment" style="font-size:0.54em; color:var(--muted); margin:0 !important; line-height:1.3;">
+            Key insight: <strong style="color:#f0f6fc;">Queen raises every model's floor equally. The LLM's quality still determines the ceiling.</strong>
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        Gemma shows consistency in lower-difficulty brackets, whereas DeepSeek scales better at high difficulty. However, the delta in validation improvement remains consistent across both models, demonstrating that the symbolic layer effectively lifts the baseline floor.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-green">Part 4 — Results</span>
+      <h2>Generalising Beyond Chess</h2>
+      <p class="sub">Pattern: LLM Proposes &rarr; Symbolic Validates &amp; Explains &rarr; LLM Revises</p>
+
+      <div class="grid-3" style="margin-top:0.6em;">
+        <div class="card fragment">
+          <h4>🗄️ SQL Generation</h4>
+          <p>Prolog validates schema, FK constraints, type correctness. LLM stops hallucinating column names.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📅 Scheduling</h4>
+          <p>Formal constraints for business hours, timezones, resource conflicts. No more Feb 30th bookings.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📐 CAD &amp; Physical Layout</h4>
+          <p>Prolog validates spacing pitch, routing layers, and cell overlaps. Stops LLMs from blundering grid alignments.</p>
+        </div>
+        <div class="card fragment">
+          <h4>📜 Compliance</h4>
+          <p>Regulatory rules as Prolog facts. LLM drafts, Prolog validates against the official rulebook.</p>
+        </div>
+        <div class="card fragment">
+          <h4>🔌 API Calls</h4>
+          <p>OpenAPI schema constraints. Intercept malformed parameters before hitting live endpoints.</p>
+        </div>
+        <div class="card fragment">
+          <h4>🧬 Any Formal Domain</h4>
+          <p>If your domain has rules you can write down, you can write them in Prolog and guardrail any LLM.</p>
+        </div>
+      </div>
+      <aside class="notes">
+        Chess was chosen because it has perfect ground truth. But the pattern is completely
+        general. Most enterprise domains already have explicit rules — API schemas, database
+        schemas, compliance requirements, scheduling constraints. All are candidates.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <h2>Takeaways</h2>
+      <p class="sub">Key architectural principles of symbolic guardrail design</p>
+
+      <div class="grid-2" style="margin-top:0.5em;">
+        <div class="card fragment" style="border-color:var(--cyan); margin-bottom:0 !important; height:100%;">
+          <div style="display:flex; align-items:center; gap:0.6em;">
+            <span style="font-size:1.3em;">💡</span>
+            <div>
+              <h4 style="color:var(--cyan); margin-bottom:0.15em !important;">Explanatory validation cuts retry rates</h4>
+              <p>Structured explanations reduce the average retry rate from 6+ to 0.18, eliminating execution deadlock loops.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card fragment" style="border-color:var(--accent); margin-bottom:0 !important; height:100%;">
+          <div style="display:flex; align-items:center; gap:0.6em;">
+            <span style="font-size:1.3em;">⚡</span>
+            <div>
+              <h4 style="margin-bottom:0.15em !important;">Hybrid architectures maximize efficiency</h4>
+              <p>Combining neural intuition with symbolic validation gains +64% accuracy without modifying model parameters.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card fragment" style="border-color:var(--gold); margin-bottom:0 !important; height:100%;">
+          <div style="display:flex; align-items:center; gap:0.6em;">
+            <span style="font-size:1.3em;">🕰️</span>
+            <div>
+              <h4 style="color:var(--gold); margin-bottom:0.15em !important;">Logic engines provide formal verification</h4>
+              <p>A declarative ruleset is deterministic, natively explainable, and handles state constraints exhaustively.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card fragment" style="border-color:var(--pink); margin-bottom:0 !important; height:100%;">
+          <div style="display:flex; align-items:center; gap:0.6em;">
+            <span style="font-size:1.3em;">🔌</span>
+            <div>
+              <h4 style="color:var(--pink); margin-bottom:0.15em !important;">Standardize via Model Context Protocol</h4>
+              <p>Exposing logic checkers through standard MCP tools makes constraint validation modular and domain-agnostic.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        The first point is the most important for anyone building LLM systems today:
+        the quality of your error messages to the model matters as much as which model you choose.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <div style="text-align:center; padding: 2em 0;">
+        <div style="font-size:3.5em; margin-bottom:0.2em;">🙌</div>
+        <h2 style="font-size:2.4em; line-height:1.2; color:#f0f6fc; margin-bottom:0.3em; margin-top:0.2em !important;">
+          Thank You!
+        </h2>
+        <p style="color:var(--muted); font-size:0.85em; max-width:600px; margin:0.6em auto 1.5em; line-height:1.5;">
+          Questions, comments, or thoughts on formal state validation?
+        </p>
+        
+        <div style="font-size:0.7em; color:var(--accent); margin-top:1.8em; font-family:'Fira Code', monospace;">
+          Presented by Abhaya Kammara
+        </div>
+      </div>
+      <aside class="notes">
+        Thank you all for your time. Let's move straight into the live demo and then open the floor for questions.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Bonus Slide 1 — Prompts</span>
+      <h2>The System Prompt: Core Philosophy</h2>
+      <p class="sub">Enforcing the boundary between probabilistic planning and symbolic ground truth</p>
+
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="terminal" style="font-size:0.41em; line-height:1.35; padding:0.6em !important;">
+          <span class="c-muted"># System Prompt — Role Definition</span><br>
+          You are a blind grandmaster chess player. Because you are blind, you CANNOT see the board directly, and you have zero spatial vision.<br>
+          Your assistant, a symbolic Prolog referee, is watching the board for you. The referee's tool outputs are the absolute, non-negotiable ground truth.<br>
+          <br>
+          To play successfully, you must rely entirely on the referee to describe the board layout, threats, and checks. Any attempt to guess coordinates will result in a blunder. Trust the referee's reports implicitly!
+        </div>
+        <div class="card" style="border-color:var(--accent); height:100%; margin-bottom:0 !important;">
+          <h4 style="color:var(--accent); margin-bottom:0.15em !important;">Why the Persona Works</h4>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>1. Pruning Spatial Hallucinations:</strong> Telling the model it is "blind" actively suppresses its reliance on faulty internal spatial representations.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>2. Enforced Tool Dependency:</strong> The prompt positions the Prolog referee tools as the sole information channel, increasing tool-calling fidelity.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important;">
+            <strong>3. Critical Checklist:</strong> The prompt mandates verifying check status, double-check scenarios, piece development, and board tension.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        By instructing the model that it is "blind" and has zero spatial vision, we suppress the transformer's tendency to predict likely-looking coordinate strings and force it to rely purely on the structured facts injected by Prolog.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Bonus Slide 2 — Prompts</span>
+      <h2>The System Prompt: Minimax Utility</h2>
+      <p class="sub">Formulating candidate move selection as a constraint optimization problem</p>
+
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="terminal" style="font-size:0.41em; line-height:1.35; padding:0.6em !important;">
+          <span class="c-muted"># Mathematical Move Selection Instructions</span><br>
+          For every move, you must select 2 to 4 candidate moves and calculate their Net Utility using this formula:<br>
+          <br>
+          <span class="c-cyan">Net Utility = Gain(Me) - MaxGain(Opponent Best Response)</span><br>
+          <br>
+          <span class="c-muted"># Tension Capture Penalty:</span><br>
+          If a candidate move is a capture that resolves active board tension for a net utility of 0, apply a <span class="c-red">-0.5 penalty</span>. This ranks it below quiet developing or reinforcing moves (utility 0).
+        </div>
+        <div class="card" style="border-color:var(--gold); height:100%; margin-bottom:0 !important;">
+          <h4 style="color:var(--gold); margin-bottom:0.15em !important;">Decision Criteria</h4>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>1. Mandatory Quiet Moves:</strong> At least one candidate move evaluated must be a non-capturing quiet developing move to prevent over-aggression.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>2. Tension Management:</strong> Capturing immediately is penalized. The prompt forces the LLM to maintain tension and develop.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important;">
+            <strong>3. Stubborn Defense:</strong> If all candidate utilities are negative, the LLM is instructed to minimize loss, block mates, and complicate the board.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        The prompt explicitly defines the minimax utility calculation. This forces the LLM to run simulate_move and get_tactical_summary on the resulting state to identify the opponent's maximum response before making a move, preventing simple tactical oversights.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Bonus Slide 3 — Prompts</span>
+      <h2>Prompt Engineering: Self-Correction</h2>
+      <p class="sub">Recovering from logical constraint violations via explanation feedback loops</p>
+
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="terminal" style="font-size:0.41em; line-height:1.3; padding:0.6em !important;">
+          <span class="c-muted"># User Prompt on Validation Failure</span><br>
+          Your proposed move <span class="c-red">"f3e5"</span> was rejected by the referee.<br>
+          <br>
+          <span class="c-muted"># Validation Error:</span><br>
+          "ILLEGAL: Knight on f3 is pinned to the King by the Bishop on b7. Moving it exposes your King to check."<br>
+          <br>
+          <span class="c-muted"># Instructions:</span><br>
+          1. Analyze the check path and pin block.<br>
+          2. Propose a new move that resolves the constraint violation.<br>
+          3. Do not propose "f3e5" again.
+        </div>
+        <div class="card" style="border-color:var(--cyan); height:100%; margin-bottom:0 !important;">
+          <h4 style="color:var(--cyan); margin-bottom:0.15em !important;">Why Self-Correction Succeeds</h4>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>1. Zero Hallucination of Cause:</strong> The LLM does not need to guess why it failed. The error message is mathematically exact.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>2. Immediate Path Pruning:</strong> The rejected move is added to the "dead paths" set in memory, preventing repeated blunders.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important;">
+            <strong>3. Semantic Explanation:</strong> Prolog's native proof tree translates binary logic failures into semantic context the transformer excels at processing.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        If the LLM proposes an illegal move, the Prolog referee returns the exact reason (e.g., piece pinned to King). This error is fed back to the LLM, prompting it to reflect on the blunder and choose a valid path.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Future Plans — Optimization</span>
+      <h2>Automated Prompt Optimization</h2>
+      <p class="sub">Proposed loop for systematically evolving agent instructions from execution logs</p>
+
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="terminal" style="font-size:0.41em; line-height:1.35; padding:0.6em !important;">
+          <span class="c-muted"># Planned Meta-Optimization Loop</span><br>
+          For each puzzle/game execution:<br>
+          &nbsp;&nbsp;Parse thoughts and Prolog rejections in log files.<br>
+          &nbsp;&nbsp;Identify cognitive mismatches (e.g. LLM ignored check constraint).<br>
+          <br>
+          <span class="c-gold"># Planned Prompts Evolution Cycle:</span><br>
+          If rejections for PINNED_PIECE > threshold:<br>
+          &nbsp;&nbsp;Synthesize explicit prompt rule: "Verify pinned_pieces list before proposing."<br>
+          &nbsp;&nbsp;Run 500-puzzle benchmark suite to measure Elo delta.<br>
+          &nbsp;&nbsp;Commit prompt update if Elo delta is positive and no regression.
+        </div>
+        <div class="card" style="border-color:var(--pink); height:100%; margin-bottom:0 !important;">
+          <h4 style="color:var(--pink); margin-bottom:0.15em !important;">Planned Optimization Pipeline</h4>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>1. Autopsy log analysis:</strong> A higher-tier model (e.g., Fable 5) will evaluate execution trace CSVs/JSONLs of lower-tier agents (e.g., Gemma 26B).
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>2. Systematic Rule Synthesis:</strong> Instead of manual trial-and-error, failure traces will be mapped to declarative text prompts (such as adding the $-0.5$ tension penalty).
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>3. Continuous Evaluation:</strong> The optimization loop will utilize Lichess puzzle suites as an automated regression testbed to validate prompt edits.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important;">
+            <strong>4. Prompt Compilers:</strong> Evolving to dynamic prompt compilers (such as DSPy) to generate specialized constraint weights dynamically per board-state profile.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        This slide outlines our future plans for the outer feedback loop. By analyzing where the LLM struggles or gets repeatedly rejected by Prolog, a meta-reasoning LLM can synthesize better instructions and automatically test them.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Future Plans — Architecture</span>
+      <h2>The Proposed Meta-Harness</h2>
+      <p class="sub">Decoupling active runtime execution from prompt optimization cycles</p>
+
+      <div class="grid-2" style="margin-top:0.4em; gap:1.2em;">
+        <div>
+          <span class="flow-label">🔄 Inner Loop — Active Real-Time Execution (Current)</span>
+          <div class="flow">
+            <div class="flow-node">FEN State</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node hl" style="border-color:var(--gold); color:var(--gold);">Prolog Facts</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node">LLM</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node hl" style="border-color:var(--cyan); color:var(--cyan);">Referee</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node" style="border-color:var(--pink); color:var(--pink);">Move</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="flow-label">⚙️ Outer Loop — Proposed Meta-Harness (Planned)</span>
+          <div class="flow">
+            <div class="flow-node">Logs</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node hl" style="border-color:var(--purple); color:var(--purple);">Autopsy</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node">Synthesis</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node hl" style="border-color:var(--accent); color:var(--accent);">Harness</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node" style="border-color:var(--cyan); color:var(--cyan);">Prompt V2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top:0.6em;">
+        <div class="card" style="margin-bottom:0 !important;">
+          <h4 style="margin-bottom:0.1em !important; font-size:0.68em !important;">Inner Loop (Active)</h4>
+          <p style="font-size:0.56em !important; line-height:1.3 !important;">
+            Handles the real-time gameplay transaction. It runs an interactive loop of tool calls and self-correction to output a single valid move.
+          </p>
+        </div>
+        <div class="card" style="margin-bottom:0 !important;">
+          <h4 style="margin-bottom:0.1em !important; font-size:0.68em !important;">Outer Loop (Proposed)</h4>
+          <p style="font-size:0.56em !important; line-height:1.3 !important;">
+            Will analyze multi-turn behaviors and failure logs across thousands of steps. Evolves system rules and prompts globally, treating the test harness as its reward signal.
+          </p>
+        </div>
+        <div class="card" style="border-color:var(--gold); margin-bottom:0 !important;">
+          <h4 style="color:var(--gold); margin-bottom:0.15em !important; font-size:0.68em !important;">🔮 Live Tuning (Proposed)</h4>
+          <p style="font-size:0.56em !important; line-height:1.3 !important;">
+            Migrating offline meta-optimization to a live hot-patching service. The harness will adjust online prompts on-the-fly based on live transaction feedback without downtime.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        This slide visualizes our proposed architectural roadmap: the inner loop is currently active to play chess and correct moves, while the proposed outer loop acts as a compiler/optimizer to update rulesets offline.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <div style="text-align:center; padding:0.8em 0;">
+        <div style="font-size:2.8em; margin-bottom:0.4em;">♟️</div>
+        <h2>Live Demo &amp; Q&amp;A</h2>
+
+        <div class="bq" style="max-width:620px; margin:1em auto; text-align:left; font-size:0.72em;">
+          <strong>Demo sequence:</strong><br>
+          1. Open Queen playground — paste the Scholar's Mate FEN, observe checkmate detection<br>
+          2. Paste pin position, try to move the pinned knight — observe the Prolog explanation<br>
+          3. Open R_Daneel_AI page, show the autopsy logs and move metrics
+        </div>
+
+        <div class="grid-3" style="max-width:860px; margin:1em auto;">
+          <div class="card" style="text-align:center;">
+            <h4>Queen Engine 👑</h4>
+            <p><code>abhay-ai.github.io/Queen</code></p>
+          </div>
+          <div class="card" style="text-align:center;">
+            <h4>R_Daneel_AI 🤖</h4>
+            <p><code>abhay-ai.github.io/R_Daneel_AI</code></p>
+          </div>
+          <div class="card" style="text-align:center;">
+            <h4>Python Library</h4>
+            <p><code>pip install queen-chess</code></p>
+          </div>
+        </div>
+
+        <p style="font-size:0.65em; color:var(--muted); margin-top:1.2em;">Questions welcome — including difficult ones 🙂</p>
+      </div>
+      <aside class="notes">
+        Demo tip: for the pin position use FEN
+        r1bqk2r/ppp2ppp/2n5/1B1pp3/4P3/3P1N2/PPP2PPP/RNBQK2R b KQkq - 0 5
+        Try to move the c6 knight. Queen returns the pin explanation immediately.
+        That single interaction usually lands better than any slide.
+      </aside>
+    </section>
+
+  </div>
+</div>
+
+  <!-- Scripts for reveal.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/highlight/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/plugin/notes/notes.min.js"></script>
+  <script>
+    Reveal.initialize({
+      width: 1100,
+      height: 750,
+      margin: 0.04,
+      minScale: 0.2,
+      maxScale: 1.5,
+      hash: true,
+      history: true,
+      transition: 'slide',
+      plugins: [ RevealHighlight, RevealNotes ]
+    });
+  </script>
+</body>
+</html>

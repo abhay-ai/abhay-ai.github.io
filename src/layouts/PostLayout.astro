@@ -22,42 +22,213 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
 ---
 
 <Layout title={`${title} | Abhay`}>
-  <article class="post">
-    <header class="post-header">
-      <h1 class="post-title">{title}</h1>
-      <div class="post-meta">
-        <span class="post-date">{formattedDate}</span>
+  <div class="post-container">
+    <!-- Left Column: Sticky Metadata & Outline -->
+    <aside class="post-sidebar">
+      <div class="sidebar-sticky">
+        <div class="sidebar-meta">
+          <span class="meta-label">Published</span>
+          <span class="meta-value">{formattedDate}</span>
+        </div>
+        <div class="sidebar-meta">
+          <span class="meta-label">Reading Time</span>
+          <span class="meta-value">12 min read</span>
+        </div>
+        <div class="sidebar-meta">
+          <span class="meta-label">Context</span>
+          <span class="meta-value">Neuro-Symbolic AI</span>
+        </div>
+        
+        <div class="sidebar-toc">
+          <span class="toc-title">Outline</span>
+          <ul class="toc-list">
+            <li><a href="#part-1-the-problem--the-hallucination-gap-amp-guardrail-paradigms">1. The Problem</a></li>
+            <li><a href="#part-2-the-tool--prolog-as-a-deterministic-validator">2. The Tool</a></li>
+            <li><a href="#part-3-case-study--chess-as-a-testbed">3. Case Study</a></li>
+            <li><a href="#part-4-the-python-orchestration-amp-llm-client-loop">4. Orchestration</a></li>
+            <li><a href="#part-5-experimental-evaluation--the-1000-puzzle-benchmark">5. Evaluation</a></li>
+            <li><a href="#part-6-future-plans-automated-prompt-optimization--meta-harness">6. Future Plans</a></li>
+            <li><a href="#generalising-beyond-chess">7. Generalisation</a></li>
+          </ul>
+        </div>
       </div>
-      {subtitle && <p class="post-subtitle"><em>{subtitle}</em></p>}
-    </header>
+    </aside>
 
-    <div class="post-content">
-      <slot />
+    <!-- Right Column: Main Content -->
+    <div class="post-main">
+      <article class="post">
+        <header class="post-header">
+          <h1 class="post-title">{title}</h1>
+          {subtitle && <p class="post-subtitle"><em>{subtitle}</em></p>}
+        </header>
+
+        <div class="post-content">
+          <slot />
+        </div>
+      </article>
+
+      {recentPosts && recentPosts.length > 0 && (
+        <section class="related">
+          <h2>Recent Posts</h2>
+          <ul class="posts-list">
+            {recentPosts.map((post) => {
+              const postDate = new Date(post.date).toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              });
+              return (
+                <li>
+                  <span class="related-date">{postDate}</span>
+                  <span class="post-arrow">&rarr;</span>
+                  <a href={`/posts/${post.slug}`}>{post.title}</a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
-  </article>
+  </div>
 
-  {recentPosts && recentPosts.length > 0 && (
-    <section class="related">
-      <h2>Recent Posts</h2>
-      <ul class="posts-list">
-        {recentPosts.map((post) => {
-          const postDate = new Date(post.date).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-          });
-          return (
-            <li>
-              <span class="related-date">{postDate}</span> &raquo; <a href={`/posts/${post.slug}`}>{post.title}</a>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  )}
+  <script is:inline>
+    // Scroll Spy for Table of Contents outline highlighting
+    window.addEventListener('DOMContentLoaded', () => {
+      const tocLinks = document.querySelectorAll('.toc-list a');
+      const observedSections = [];
+
+      // Find target sections matching outline anchors
+      tocLinks.forEach(link => {
+        const hash = link.getAttribute('href');
+        const id = decodeURIComponent(hash.substring(1));
+        const target = document.getElementById(id);
+        if (target) {
+          observedSections.push({ link, target });
+        }
+      });
+
+      const handleScrollSpy = () => {
+        const scrollPosition = window.scrollY;
+        let current = null;
+
+        // Loop through sections to find the one closest to view
+        for (const section of observedSections) {
+          const top = section.target.offsetTop;
+          if (scrollPosition >= top - 140) {
+            current = section;
+          } else {
+            break;
+          }
+        }
+
+        // Apply active classes
+        tocLinks.forEach(l => l.classList.remove('active'));
+        if (current) {
+          current.link.classList.add('active');
+        }
+      };
+
+      // Trigger scroll spy listeners
+      window.addEventListener('scroll', handleScrollSpy, { passive: true });
+      window.addEventListener('resize', handleScrollSpy, { passive: true });
+      
+      // Initialize immediately
+      setTimeout(handleScrollSpy, 100);
+    });
+  </script>
 </Layout>
 
 <style>
+  .post-container {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 3.5rem;
+    align-items: start;
+    margin-top: 1rem;
+  }
+
+  .post-sidebar {
+    position: sticky;
+    top: 2rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    border-right: 1.5px dashed rgba(120, 113, 108, 0.25);
+    padding-right: 1.5rem;
+    height: auto;
+  }
+
+  .sidebar-sticky {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .sidebar-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .meta-label {
+    text-transform: uppercase;
+    color: var(--muted-color);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+
+  .meta-value {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+
+  .sidebar-toc {
+    margin-top: 1rem;
+    border-top: 1.5px dashed rgba(120, 113, 108, 0.25);
+    padding-top: 1.5rem;
+  }
+
+  .toc-title {
+    text-transform: uppercase;
+    color: var(--muted-color);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    display: block;
+  }
+
+  .toc-list {
+    list-style-type: none;
+    padding-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .toc-list a {
+    color: var(--muted-color);
+    text-decoration: none;
+    transition: color 0.2s ease, padding-left 0.2s ease, border-color 0.2s ease;
+    display: inline-block;
+    border-left: 2px solid transparent;
+    padding-left: 0;
+  }
+
+  .toc-list a:hover {
+    color: var(--accent-color);
+  }
+
+  .toc-list a.active {
+    color: var(--accent-color);
+    font-weight: 600;
+    border-left-color: var(--accent-color);
+    padding-left: 0.5rem;
+  }
+
+  .post-main {
+    min-width: 0;
+  }
+
   .post-header {
     margin-bottom: 2rem;
   }
@@ -67,14 +238,8 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 0.5rem;
+    margin-top: 0;
     color: var(--text-color);
-  }
-  
-  .post-meta {
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: var(--muted-color);
-    margin-bottom: 1.5rem;
   }
   
   .post-subtitle {
@@ -88,7 +253,7 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
   
   .related {
     margin-top: 4rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1.5px dashed rgba(120, 113, 108, 0.25);
     padding-top: 2rem;
   }
   
@@ -114,5 +279,41 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
     font-family: monospace;
     font-size: 0.85rem;
     margin-right: 0.5rem;
+  }
+
+  .post-arrow {
+    margin: 0 0.5rem;
+    color: var(--muted-color);
+  }
+
+  /* Responsive Mobile Styling */
+  @media (max-width: 768px) {
+    .post-container {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .post-sidebar {
+      position: static;
+      border-right: none;
+      border-bottom: 1.5px dashed rgba(120, 113, 108, 0.25);
+      padding-right: 0;
+      padding-bottom: 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .sidebar-sticky {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .sidebar-toc {
+      display: none; /* Hide TOC on mobile screen widths */
+    }
   }
 </style>
