@@ -567,149 +567,146 @@ To understand the core strengths of the neural and symbolic components, we can l
 Here is the pass rate trend:
 
 <div style="margin: 2rem 0; padding: 1.5rem; border: 1.5px dashed var(--dashed-border-color); border-radius: 12px; background: var(--code-bg);">
-  <strong style="display: block; margin-bottom: 1.25rem; font-family: 'Outfit', sans-serif; font-size: 1.05rem; color: var(--accent-color);">📈 Accuracy Trend by Difficulty Band</strong>
-  
-  <div style="display: flex; flex-direction: column; gap: 1rem;">
-    <!-- Band 1: 600 - 1000 -->
-    <div>
-      <span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">Standard Low (600-1000 Elo)</span>
-      <div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Pure LLM:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 14.4%; height: 100%;"></div>
-          </div>
-          <span>14.4%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Queen-Only:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 91.2%; height: 100%;"></div>
-          </div>
-          <span>91.2%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--accent-color); width: 92.4%; height: 100%;"></div>
-          </div>
-          <span style="color: var(--accent-color); font-weight: bold;">92.4%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 88.8%; height: 100%;"></div>
-          </div>
-          <span>88.8%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Band 2: 1100 - 1500 -->
-    <div>
-      <span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">Standard High (1100-1500 Elo)</span>
-      <div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Pure LLM:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 17.6%; height: 100%;"></div>
-          </div>
-          <span>17.6%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Queen-Only:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 59.2%; height: 100%;"></div>
-          </div>
-          <span>59.2%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--accent-color); width: 69.2%; height: 100%;"></div>
-          </div>
-          <span style="color: var(--accent-color); font-weight: bold;">69.2%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 67.2%; height: 100%;"></div>
-          </div>
-          <span>67.2%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Band 3: 1600 - 2000 -->
-    <div>
-      <span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">High Low (1600-2000 Elo)</span>
-      <div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Pure LLM:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 21.6%; height: 100%;"></div>
-          </div>
-          <span>21.6%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Queen-Only:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 43.6%; height: 100%;"></div>
-          </div>
-          <span>43.6%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--accent-color); width: 45.6%; height: 100%;"></div>
-          </div>
-          <span>45.6%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 48.0%; height: 100%;"></div>
-          </div>
-          <span style="color: #3b82f6; font-weight: bold;">48.0%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Band 4: 2100 - 2500 -->
-    <div>
-      <span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">High High (2100-2500 Elo)</span>
-      <div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Pure LLM:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 18.8%; height: 100%;"></div>
-          </div>
-          <span>18.8%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Queen-Only:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 24.4%; height: 100%;"></div>
-          </div>
-          <span>24.4%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--accent-color); width: 25.2%; height: 100%;"></div>
-          </div>
-          <span>25.2%</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
-          <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
-          <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 28.4%; height: 100%;"></div>
-          </div>
-          <span style="color: #3b82f6; font-weight: bold;">28.4%</span>
-        </div>
-      </div>
-    </div>
-  </div>
+<strong style="display: block; margin-bottom: 1.25rem; font-family: 'Outfit', sans-serif; font-size: 1.05rem; color: var(--accent-color);">📈 Accuracy Trend by Difficulty Band</strong>
+<div style="display: flex; flex-direction: column; gap: 1rem;">
+<!-- Band 1: 600 - 1000 -->
+<div>
+<span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">Standard Low (600-1000 Elo)</span>
+<div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Pure LLM:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--muted-color); width: 14.4%; height: 100%;"></div>
+</div>
+<span>14.4%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Queen-Only:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #10b981; width: 91.2%; height: 100%;"></div>
+</div>
+<span>91.2%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--accent-color); width: 92.4%; height: 100%;"></div>
+</div>
+<span style="color: var(--accent-color); font-weight: bold;">92.4%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #3b82f6; width: 88.8%; height: 100%;"></div>
+</div>
+<span>88.8%</span>
+</div>
+</div>
+</div>
+<!-- Band 2: 1100 - 1500 -->
+<div>
+<span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">Standard High (1100-1500 Elo)</span>
+<div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Pure LLM:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--muted-color); width: 17.6%; height: 100%;"></div>
+</div>
+<span>17.6%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Queen-Only:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #10b981; width: 59.2%; height: 100%;"></div>
+</div>
+<span>59.2%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--accent-color); width: 69.2%; height: 100%;"></div>
+</div>
+<span style="color: var(--accent-color); font-weight: bold;">69.2%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #3b82f6; width: 67.2%; height: 100%;"></div>
+</div>
+<span>67.2%</span>
+</div>
+</div>
+</div>
+<!-- Band 3: 1600 - 2000 -->
+<div>
+<span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">High Low (1600-2000 Elo)</span>
+<div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Pure LLM:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--muted-color); width: 21.6%; height: 100%;"></div>
+</div>
+<span>21.6%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Queen-Only:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #10b981; width: 43.6%; height: 100%;"></div>
+</div>
+<span>43.6%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--accent-color); width: 45.6%; height: 100%;"></div>
+</div>
+<span>45.6%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #3b82f6; width: 48.0%; height: 100%;"></div>
+</div>
+<span style="color: #3b82f6; font-weight: bold;">48.0%</span>
+</div>
+</div>
+</div>
+<!-- Band 4: 2100 - 2500 -->
+<div>
+<span style="font-family: monospace; font-size: 0.85rem; color: var(--muted-color); display: block; margin-bottom: 0.35rem;">High High (2100-2500 Elo)</span>
+<div style="display: flex; flex-direction: column; gap: 0.25rem; border-left: 2px solid var(--border-color); padding-left: 0.75rem;">
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Pure LLM:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--muted-color); width: 18.8%; height: 100%;"></div>
+</div>
+<span>18.8%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Queen-Only:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #10b981; width: 24.4%; height: 100%;"></div>
+</div>
+<span>24.4%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: var(--accent-color); width: 25.2%; height: 100%;"></div>
+</div>
+<span>25.2%</span>
+</div>
+<div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
+<span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
+<div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
+<div style="background: #3b82f6; width: 28.4%; height: 100%;"></div>
+</div>
+<span style="color: #3b82f6; font-weight: bold;">28.4%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
   
   <p style="font-size: 0.8rem; color: var(--muted-color); margin-top: 1rem; line-height: 1.4;">
     <strong>The Crossover Trend</strong>: At low difficulty (600–1000), the symbolic heuristics are highly effective, though the `gemma-2-27b` hybrid slightly outperforms Queen-only (92.4% vs 91.2%). Adding the `deepseek-v4` model here introduces a minor noise penalty (88.8%). At intermediate tiers (1100–1500), LLM strategic planning yields a significant accuracy boost (59.2% → 69.2%). At Master tiers (2100–2500), pure heuristics drop significantly (24.4%). The `deepseek-v4` hybrid maintains defensive viability (28.4%) over the baseline, whereas the `gemma-2-27b` hybrid (25.2%) performs within the margin of noise of Queen-only (24.4%), and both outperform the pure LLM baseline (18.8%).
