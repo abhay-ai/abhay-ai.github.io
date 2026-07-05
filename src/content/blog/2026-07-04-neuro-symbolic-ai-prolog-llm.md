@@ -121,13 +121,32 @@ By analyzing agent failure modes, we can map the distinct strengths and weakness
   </div>
 </div>
 
-### Two Guardrail Philosophies: Blocking vs. Explaining
-When a validator detects a constraint violation, the feedback mechanism determines the agent's recovery rate:
-
-1.  **Blocking (Reject-Only)**: The system rejects the output with a generic code (e.g., `HTTP 400: Bad Request` or `Illegal move`). The LLM knows it failed but has no semantic context explaining *why*. It enters a retry loop, blindly guessing parameters, wasting tokens, and frequently deadlocking.
-2.  **Explaining (Structured Feedback)**: The validator returns a precise, structured explanation of the failure (e.g., *"Cannot place cell. Coordinates [X:12-16, Y:4] overlap with keep-out boundary reserved by Cell_B"*). The LLM reads this explanation as semantic context, reasons on the constraint boundary, and self-corrects in the next turn.
-
-Our core design principle is: **Our goal is not to control the LLM, but to show direction when it is confused.**
+<div style="margin: 2rem 0; padding: 1.5rem; border: 1.5px dashed var(--dashed-border-color); border-radius: 12px; background: var(--code-bg);">
+  <h3 style="margin-top: 0; color: var(--accent-color); font-family: 'Outfit', sans-serif; font-size: 1.2rem;">Two Guardrail Philosophies: Blocking vs. Explaining</h3>
+  <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.25rem; color: var(--text-color);">
+    When a validator detects a constraint violation, the feedback mechanism determines the agent's recovery rate:
+  </p>
+  
+  <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="padding: 1rem; border-left: 3px solid #ef4444; background: rgba(239, 68, 68, 0.03); border-radius: 4px;">
+      <strong style="color: #ef4444; font-family: 'Outfit', sans-serif; display: block; margin-bottom: 0.25rem;">❌ Blocking (Reject-Only)</strong>
+      <span style="font-size: 0.9rem; line-height: 1.5; color: var(--text-color); display: block;">
+        The system rejects the output with a generic code (e.g., <code>HTTP 400: Bad Request</code> or <code>Illegal move</code>). The LLM knows it failed but has no semantic context explaining <em>why</em>. It enters a retry loop, blindly guessing parameters, wasting tokens, and frequently deadlocking.
+      </span>
+    </div>
+    
+    <div style="padding: 1rem; border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.03); border-radius: 4px;">
+      <strong style="color: #10b981; font-family: 'Outfit', sans-serif; display: block; margin-bottom: 0.25rem;">💡 Explaining (Structured Feedback)</strong>
+      <span style="font-size: 0.9rem; line-height: 1.5; color: var(--text-color); display: block;">
+        The validator returns a precise, structured explanation of the failure (e.g., <em>"Cannot place cell. Coordinates [X:12-16, Y:4] overlap with keep-out boundary reserved by Cell_B"</em>). The LLM reads this explanation as semantic context, reasons on the constraint boundary, and self-corrects in the next turn.
+      </span>
+    </div>
+  </div>
+  
+  <blockquote style="margin: 0; padding: 0.75rem 1rem; border-left: 3px solid var(--accent-color); background: rgba(194, 65, 12, 0.03); font-style: italic; border-radius: 4px;">
+    Our core design principle: <strong>Our goal is not to control the LLM, but to show direction when it is confused.</strong>
+  </blockquote>
+</div>
 
 ---
 
