@@ -69,6 +69,13 @@ In modern AI engineering, we have built incredibly capable probabilistic neural 
 
 To build reliable agents, we must bridge this gap. This post presents a **Neuro-Symbolic architecture** that wraps a probabilistic neural System 1 LLM (Gemma 2 27B, DeepSeek-V4) inside a deterministic symbolic System 2 ruleset written in **SWI-Prolog**. Using chess as a formal testbed, we demonstrate how this hybrid approach raises the agent's absolute pass rate by **40 percentage points** (from **18.1% to 58.1%**, representing a **3.2x relative accuracy increase**), elevating its combined rating from **889 Elo to 1713 Elo** (or from **indistinguishable from random guessing (Elo ≲ 0)** to **1527 Elo** when adjusted for a guess-floor) without any model fine-tuning.
 
+<div style="margin: 1.5rem 0; padding: 1rem 1.25rem; border: 1.5px dashed var(--dashed-border-color); border-radius: 8px; background: rgba(194, 65, 12, 0.02); display: flex; align-items: center; gap: 0.75rem;">
+  <span style="font-size: 1.5rem;">📊</span>
+  <div>
+    <strong style="color: var(--accent-color); font-family: 'Outfit', sans-serif;">Companion Slide Deck</strong>: We have prepared an interactive Reveal.js slideshow summarizing this architecture. <a href="/r-daneel-ai/presentation.html" target="_blank">View the Presentation Slides &rarr;</a>
+  </div>
+</div>
+
 ---
 
 ## Part 1: The Problem — The Hallucination Gap & Guardrail Paradigms

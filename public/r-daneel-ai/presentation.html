@@ -102,6 +102,7 @@
     .c-cyan { color: var(--cyan) !important; }
     .c-pink { color: var(--pink) !important; }
     .c-gold { color: var(--gold) !important; }
+    .c-accent { color: var(--accent) !important; }
     
     /* Grid / Layout */
     .grid-2 {
@@ -343,7 +344,7 @@
 <div class="reveal">
   <!-- Persistent Footer -->
   <div style="position: absolute; bottom: 20px; left: 30px; font-size: 0.45em; color: var(--muted); font-family: 'Inter', sans-serif; z-index: 99; pointer-events: none; opacity: 0.6; letter-spacing: 0.05em; text-transform: uppercase;">
-    Abhaya Kammara &nbsp;·&nbsp; LLM Guardrails &amp; State Verification
+    Abhaya Kammara &nbsp;·&nbsp; Neuro-Symbolic AI: LLM + Prolog
   </div>
 
   <div class="slides">
@@ -352,11 +353,11 @@
     <section data-background-color="#0d1117">
       <div style="text-align:center; padding: 1.5em 0;">
         <div style="font-size:2.8em; margin-bottom:0.3em;">♟️🔮</div>
-        <h2 style="font-size:1.9em; line-height:1.2; color:#f0f6fc;">
-          LLM Guardrails &amp; Vision
+        <h2 style="font-size:1.8em; line-height:1.2; color:#f0f6fc; margin-bottom:0.1em !important;">
+          Neuro-Symbolic AI
         </h2>
-        <h3 style="font-size:1.1em; color:var(--accent); margin-top:0.2em;">
-          Using Prolog as the Middleman
+        <h3 style="font-size:1.0em; color:var(--accent); margin-top:0.1em !important; font-weight:normal !important; text-transform:none !important; letter-spacing:0.02em !important;">
+          Pairing LLM Intuition with Prolog Logic
         </h3>
         <p style="color:var(--muted); font-size:0.75em; max-width:620px; margin:1.2em auto 1.8em; line-height:1.55;">
           Guaranteed constraint enforcement in LLM agents: A case study in
@@ -680,13 +681,13 @@ grandparent(X, Z) :-
             </div>
             <div style="display:flex; justify-content:space-between; font-size:0.75em; margin-bottom:0.4em;">
               <span class="c-muted">Tactical Elo</span>
-              <span class="c-red" style="font-weight:700;">~673</span>
+              <span class="c-red" style="font-weight:700;">673 <span style="font-size:0.8em; color:var(--muted); font-weight:normal;">(unfloored)</span></span>
             </div>
             <div style="display:flex; justify-content:space-between; font-size:0.75em;">
               <span class="c-muted">Avg retries per move</span>
-              <span class="c-red" style="font-weight:700;">6+</span>
+              <span class="c-red" style="font-weight:700;">0.24</span>
             </div>
-            <p style="margin-top:0.6em; font-size:0.65em;">673 Elo indicates severe tactical limitations</p>
+            <p style="margin-top:0.6em; font-size:0.65em;">Drops to ≲ 0 Elo when guess-floor adjusted ($g=0.18$)</p>
           </div>
         </div>
       </div>
@@ -758,7 +759,7 @@ grandparent(X, Z) :-
               <h4>② Orchestration Layer</h4>
               <code>queen.py</code>
             </div>
-            <p>Python bridge via <code>pyswip</code>. Parses FEN notation into Prolog variables, runs queries, returns structured Python dicts. Also installable as <code>pip install queen-chess</code>.</p>
+            <p>Python bridge via <code>pyswip</code>. Parses FEN notation into Prolog variables, runs queries, returns structured Python dicts. Orchestrated as a local module.</p>
           </div>
         </div>
 
@@ -793,7 +794,7 @@ grandparent(X, Z) :-
 
       <div class="grid-2" style="margin-top:0.6em;">
         <div>
-          <p style="font-size:0.65em; color:var(--red); font-weight:700; margin-bottom:0.3em;">❌ Without Queen — reject only</p>
+          <p style="font-size:0.65em; color:var(--red); font-weight:700; margin-bottom:0.3em;">❌ Without Queen — reject only (illustrative)</p>
           <div class="terminal">
             <span class="c-muted">LLM: </span>a7a6<br>
             <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
@@ -801,7 +802,7 @@ grandparent(X, Z) :-
             <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
             <span class="c-muted">LLM: </span>b8c6<br>
             <span class="c-muted">Engine: </span><span class="c-red">Illegal move.</span><br><br>
-            <span class="c-muted" style="font-style:italic;">… 6+ retries … deadlock …</span>
+            <span class="c-muted" style="font-style:italic;">… deadlock loop (illustrative) …</span>
           </div>
         </div>
 
@@ -889,6 +890,38 @@ grandparent(X, Z) :-
     
     <section data-background-color="#0d1117">
       <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
+      <h2>The System Prompt: Core Philosophy</h2>
+      <p class="sub">Enforcing the boundary between probabilistic planning and symbolic ground truth</p>
+
+      <div class="grid-2" style="margin-top:0.4em;">
+        <div class="terminal" style="font-size:0.41em; line-height:1.35; padding:0.6em !important;">
+          <span class="c-muted"># System Prompt — Role Definition</span><br>
+          You are a blind grandmaster chess player. Because you are blind, you CANNOT see the board directly, and you have zero spatial vision.<br>
+          Your assistant, a symbolic Prolog referee, is watching the board for you. The referee's tool outputs are the absolute, non-negotiable ground truth.<br>
+          <br>
+          To play successfully, you must rely entirely on the referee to describe the board layout, threats, and checks. Any attempt to guess coordinates will result in a blunder. Trust the referee's reports implicitly!
+        </div>
+        <div class="card" style="border-color:var(--accent); height:100%; margin-bottom:0 !important;">
+          <h4 style="color:var(--accent); margin-bottom:0.15em !important;">Why the Persona Works</h4>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>1. Pruning Spatial Hallucinations:</strong> Telling the model it is "blind" actively suppresses its reliance on faulty internal spatial representations.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
+            <strong>2. Enforced Tool Dependency:</strong> The prompt positions the Prolog referee tools as the sole information channel, increasing tool-calling fidelity.
+          </p>
+          <p style="font-size:0.58em !important; line-height:1.35 !important;">
+            <strong>3. Critical Checklist:</strong> The prompt mandates verifying check status, double-check scenarios, piece development, and board tension.
+          </p>
+        </div>
+      </div>
+      <aside class="notes">
+        By instructing the model that it is "blind" and has zero spatial vision, we suppress the transformer's tendency to predict likely-looking coordinate strings and force it to rely purely on the structured facts injected by Prolog.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-gold">Part 3 — Chess &amp; Queen Engine</span>
       <h2>R_Daneel_AI: The Full System</h2>
       <p class="sub">Queen wraps both ends of the LLM — pre-feed and post-validate</p>
 
@@ -940,47 +973,52 @@ grandparent(X, Z) :-
     <section data-background-color="#0d1117">
       <span class="pill pill-green">Part 4 — Results</span>
       <h2>Benchmark: The Numbers</h2>
-      <p class="sub">500 Lichess puzzles · 600–1500 Elo · Gemma 26B · pure LLM vs. + Queen</p>
+      <p class="sub">500 Lichess puzzles · 600–1500 Elo · gemma-2-27b · pure LLM vs. + Queen</p>
 
-      <div class="grid-2" style="margin-top:0.5em; align-items:center; gap:1.5em;">
-        <div style="display:flex; flex-direction:column; gap:0.4em;">
-          <div class="stat-card fragment" style="padding:0.4em !important;">
-            <div class="stat-number c-red" style="font-size:1.1em !important;">16%</div>
-            <div class="stat-label" style="font-size:0.45em !important;">Raw LLM Accuracy</div>
-            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">80/500 puzzles · 673 Elo</div>
+      <div class="grid-2" style="margin-top:0.4em; align-items:center; gap:1.2em;">
+        <div style="display:flex; flex-direction:column; gap:0.35em;">
+          <div class="stat-card fragment" style="padding:0.35em !important; text-align:left;">
+            <div class="stat-number c-red" style="font-size:1.0em !important; line-height:1.0 !important;">16.0% <span style="font-size:0.5em; color:var(--muted); font-weight:normal;">(≲ 0 Elo floored ‡)</span></div>
+            <div class="stat-label" style="font-size:0.45em !important; font-weight:bold;">Raw LLM Baseline (gemma-2-27b)</div>
+            <div style="font-size:0.4em; color:var(--muted); margin-top:0.1em;">80 / 500 puzzles solved · 3-retry limit</div>
           </div>
-          <div class="stat-card fragment" style="border-color:var(--cyan); padding:0.4em !important;">
-            <div class="stat-number c-cyan" style="font-size:1.1em !important;">80.8%</div>
-            <div class="stat-label" style="font-size:0.45em !important;">+ Queen Accuracy</div>
-            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">404/500 puzzles · 1478 Elo</div>
+          <div class="stat-card fragment" style="border-color:var(--gold); padding:0.35em !important; text-align:left;">
+            <div class="stat-number c-gold" style="font-size:1.0em !important; line-height:1.0 !important;">75.2% <span style="font-size:0.5em; color:var(--muted); font-weight:normal;">(1441 Elo ‡)</span></div>
+            <div class="stat-label" style="font-size:0.45em !important; font-weight:bold;">Queen-Only Baseline (Symbolic)</div>
+            <div style="font-size:0.4em; color:var(--muted); margin-top:0.1em;">376 / 500 puzzles solved · 0.54s average latency</div>
           </div>
-          <div class="stat-card fragment" style="border-color:var(--gold); padding:0.4em !important;">
-            <div class="stat-number c-gold" style="font-size:1.1em !important;">+805</div>
-            <div class="stat-label" style="font-size:0.45em !important;">Elo Points Gained</div>
-            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Zero model retraining</div>
+          <div class="stat-card fragment" style="border-color:var(--cyan); padding:0.35em !important; text-align:left;">
+            <div class="stat-number c-cyan" style="font-size:1.0em !important; line-height:1.0 !important;">80.8% <span style="font-size:0.5em; color:var(--muted); font-weight:normal;">(1527 Elo ‡)</span></div>
+            <div class="stat-label" style="font-size:0.45em !important; font-weight:bold;">R_Daneel_AI (gemma-2-27b + Queen)</div>
+            <div style="font-size:0.4em; color:var(--muted); margin-top:0.1em;">404 / 500 puzzles solved · 5.6 pt absolute gain</div>
           </div>
         </div>
 
-        <table class="fragment" style="margin:0 !important; font-size:0.48em !important; width:100%;">
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th style="color:var(--red);">Raw LLM</th>
-              <th style="color:var(--cyan);">+ Queen</th>
-              <th style="color:var(--gold);">Delta</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Puzzles Solved</td><td>80 / 500</td><td><strong>404 / 500</strong></td><td class="c-cyan">+324</td></tr>
-            <tr><td>Accuracy</td><td>16.0%</td><td><strong>80.8%</strong></td><td class="c-cyan">+64.8 pts</td></tr>
-            <tr><td>Tactical Elo</td><td>673</td><td><strong>1478</strong></td><td class="c-cyan">+805 Elo</td></tr>
-            <tr><td>Avg Retries / Move</td><td>6+</td><td><strong>0.18</strong></td><td class="c-cyan">Pruned</td></tr>
-          </tbody>
-        </table>
+        <div style="display:flex; flex-direction:column;">
+          <table class="fragment" style="margin:0 !important; font-size:0.46em !important; width:100%;">
+            <thead>
+              <tr>
+                <th>Metric (600–1500 Elo)</th>
+                <th style="color:var(--red);">Raw LLM</th>
+                <th style="color:var(--gold);">Queen-Only</th>
+                <th style="color:var(--cyan);">LLM + Queen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Puzzles Solved</td><td>80 / 500</td><td>376 / 500</td><td><strong>404 / 500</strong></td></tr>
+              <tr><td>Accuracy</td><td>16.0%</td><td>75.2%</td><td><strong>80.8%</strong></td></tr>
+              <tr><td>Combined Suite Elo ‡</td><td>≲ 0</td><td>1441</td><td><strong>1527</strong></td></tr>
+              <tr><td>Avg Retries / Move</td><td>0.24</td><td>0.00</td><td><strong>0.38</strong></td></tr>
+              <tr><td>Avg Move Latency</td><td>17.5s</td><td>0.54s</td><td><strong>24.3s</strong></td></tr>
+            </tbody>
+          </table>
+          <p class="fragment" style="font-size:0.41em; color:var(--muted); margin-top:0.8em; line-height:1.25; text-align:left;">
+            ‡ Elo ratings shown reflect the combined 1,000-puzzle suite (guess-floor adjusted). Standard-tier bisection figures are 673 / 1399 / 1478. Calibrations are published in Section 5 of the blog.
+          </p>
+        </div>
       </div>
       <aside class="notes">
-        Key takeaway: an +805 Elo improvement achieved solely through symbolic validation,
-        without modifying model weights or extending training datasets.
+        An honest look at the numbers shows that the symbolic engine does the heavy lifting, achieving 75.2% accuracy. The LLM adds a strategic lift of 5.6 points but at a 45x latency cost.
       </aside>
     </section>
 
@@ -988,14 +1026,14 @@ grandparent(X, Z) :-
     <section data-background-color="#0d1117">
       <span class="pill pill-green">Part 4 — Results</span>
       <h2>Extended Benchmark: 1,000 Puzzles</h2>
-      <p class="sub">Full difficulty range (600–2500 Elo) · DeepSeek v4 vs. Gemma 26B</p>
+      <p class="sub">Full difficulty range (600–2500 Elo) · deepseek-v4 vs. gemma-2-27b</p>
 
       <div class="grid-2" style="margin-top:0.5em; align-items:center; gap:1.5em;">
         <div style="display:flex; flex-direction:column; gap:0.4em;">
           <div class="stat-card" style="padding:0.4em !important;">
             <div class="stat-number c-accent" style="font-size:1.1em !important;">58.1%</div>
-            <div class="stat-label" style="font-size:0.45em !important;">Both models (tied)</div>
-            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Full 1,000-puzzle suite</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Both models (tied overall)</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Full 1,000-puzzle suite score</div>
           </div>
           <div class="stat-card" style="border-color:var(--cyan); padding:0.4em !important;">
             <div class="stat-number c-cyan" style="font-size:1.1em !important;">+40 pts</div>
@@ -1003,28 +1041,31 @@ grandparent(X, Z) :-
             <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">18.1% → 58.1% (LLM → +Queen)</div>
           </div>
           <div class="stat-card" style="border-color:var(--pink); padding:0.4em !important;">
-            <div class="stat-number c-pink" style="font-size:1.1em !important;">1765</div>
-            <div class="stat-label" style="font-size:0.45em !important;">Peak Elo</div>
-            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">Bisection method over suite</div>
+            <div class="stat-number c-pink" style="font-size:1.1em !important;">1713</div>
+            <div class="stat-label" style="font-size:0.45em !important;">Combined Elo</div>
+            <div class="stat-sub" style="font-size:0.4em !important; margin-top:0.1em;">(1527 guess-floor adjusted)</div>
           </div>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:0.4em;">
           <div class="card" style="border-color:var(--purple); padding:0.4em 0.6em !important; margin-bottom:0 !important;">
-            <h4 style="color:var(--purple); font-size:0.68em !important; margin-bottom:0.1em !important;">Gemma 26B — Consistency</h4>
+            <h4 style="color:var(--purple); font-size:0.68em !important; margin-bottom:0.1em !important;">gemma-2-27b — Consistency</h4>
             <p style="font-size:0.54em !important; line-height:1.3 !important;">Highest accuracy in the 600–1500 Elo range. 80.8% on the easy bracket.</p>
           </div>
           <div class="card" style="border-color:var(--cyan); padding:0.4em 0.6em !important; margin-bottom:0 !important;">
-            <h4 style="color:var(--cyan); font-size:0.68em !important; margin-bottom:0.1em !important;">DeepSeek v4 — Complexity</h4>
-            <p style="font-size:0.54em !important; line-height:1.3 !important;">Outperforms Gemma in the 1600–2500 Elo range by up to +12%.</p>
+            <h4 style="color:var(--cyan); font-size:0.68em !important; margin-bottom:0.1em !important;">deepseek-v4 — Complexity</h4>
+            <p style="font-size:0.54em !important; line-height:1.3 !important;">Outperforms gemma-2-27b in the 1600–2500 Elo range by up to +14 points.</p>
           </div>
-          <p class="fragment" style="font-size:0.54em; color:var(--muted); margin:0 !important; line-height:1.3;">
-            Key insight: <strong style="color:#f0f6fc;">Queen raises every model's floor equally. The LLM's quality still determines the ceiling.</strong>
+          <p class="fragment" style="font-size:0.54em; color:var(--muted); margin:0 !important; line-height:1.3; text-align:left;">
+            Key architecture takeaway: <strong style="color:#f0f6fc;">The symbolic engine sets the floor; the LLM buys strategic direction; the payoff is domains with no Stockfish.</strong>
+          </p>
+          <p class="fragment" style="font-size:0.42em; color:var(--muted); margin-top:0.4em; line-height:1.25; text-align:left;">
+            ‡ See Section 5 of the blog for full tier-by-tier tables and rating Convergence Solver code.
           </p>
         </div>
       </div>
       <aside class="notes">
-        Gemma shows consistency in lower-difficulty brackets, whereas DeepSeek scales better at high difficulty. However, the delta in validation improvement remains consistent across both models, demonstrating that the symbolic layer effectively lifts the baseline floor.
+        gemma-2-27b shows consistency in lower-difficulty brackets, whereas deepseek-v4 scales better at high difficulty. However, the delta in validation improvement remains consistent across both models, demonstrating that the symbolic layer effectively lifts the baseline floor.
       </aside>
     </section>
 
@@ -1069,6 +1110,41 @@ grandparent(X, Z) :-
 
     
     <section data-background-color="#0d1117">
+      <span class="pill pill-green">Part 4 — Results</span>
+      <h2>Limitations &amp; Caveats</h2>
+      <p class="sub">Critical trade-offs and performance bounds of the hybrid architecture</p>
+
+      <div class="grid-3" style="margin-top:0.6em;">
+        <div class="card fragment" style="border-color:var(--pink); margin-bottom:0 !important; height:100%;">
+          <h4 style="color:var(--pink); margin-bottom:0.15em !important;">⏳ Impractical Latency</h4>
+          <p style="font-size:0.55em !important; line-height:1.35 !important;">
+            Move latency ranges from <strong>24.3s to 276.9s</strong>, making the hybrid architecture completely unusable for blitz or rapid chess formats.
+          </p>
+        </div>
+        <div class="card fragment" style="border-color:var(--purple); margin-bottom:0 !important; height:100%;">
+          <h4 style="color:var(--purple); margin-bottom:0.15em !important;">📊 Statistical Limits</h4>
+          <p style="font-size:0.55em !important; line-height:1.35 !important;">
+            Evaluations represent single-run statistics on the database. We did not run trials across varying random seed ranges or temperature thresholds.
+          </p>
+        </div>
+        <div class="card fragment" style="border-color:var(--gold); margin-bottom:0 !important; height:100%;">
+          <h4 style="color:var(--gold); margin-bottom:0.15em !important;">📉 High-Tier Degradation</h4>
+          <p style="font-size:0.55em !important; line-height:1.35 !important;">
+            At the 2500 Elo tier, hybrids underperform baselines because the planner confidently steers search spaces into complex areas neither understands.
+          </p>
+        </div>
+      </div>
+      <p class="fragment" style="font-size:0.42em; color:var(--muted); margin-top:0.8em; line-height:1.25; text-align:left;">
+        ‡ Future work: Efficacy ablation comparing raw error blocking vs. structured explanatory feedback is not yet quantified.
+      </p>
+      <aside class="notes">
+        Compute latency is high, statistical variances exist, and at the absolute highest tiers, the hybrid agent can underperform baselines due to compounding search errors.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
+      <span class="pill pill-green">Part 4 — Results</span>
       <h2>Takeaways</h2>
       <p class="sub">Key architectural principles of symbolic guardrail design</p>
 
@@ -1077,8 +1153,8 @@ grandparent(X, Z) :-
           <div style="display:flex; align-items:center; gap:0.6em;">
             <span style="font-size:1.3em;">💡</span>
             <div>
-              <h4 style="color:var(--cyan); margin-bottom:0.15em !important;">Explanatory validation cuts retry rates</h4>
-              <p>Structured explanations reduce the average retry rate from 6+ to 0.18, eliminating execution deadlock loops.</p>
+              <h4 style="color:var(--cyan); margin-bottom:0.15em !important;">Explanatory validation directs recovery</h4>
+              <p>Structured explanations guide the agent's next action, resolving logic violations through reasoning rather than generic blocking.</p>
             </div>
           </div>
         </div>
@@ -1087,7 +1163,7 @@ grandparent(X, Z) :-
             <span style="font-size:1.3em;">⚡</span>
             <div>
               <h4 style="margin-bottom:0.15em !important;">Hybrid architectures maximize efficiency</h4>
-              <p>Combining neural intuition with symbolic validation gains +64% accuracy without modifying model parameters.</p>
+              <p>Combining neural intuition with symbolic validation gains +40 percentage points over the entire suite.</p>
             </div>
           </div>
         </div>
@@ -1112,7 +1188,7 @@ grandparent(X, Z) :-
       </div>
       <aside class="notes">
         The first point is the most important for anyone building LLM systems today:
-        the quality of your error messages to the model matters as much as which model you choose.
+        giving the model directional feedback on failure guides it back to path safety.
       </aside>
     </section>
 
@@ -1126,6 +1202,10 @@ grandparent(X, Z) :-
         <p style="color:var(--muted); font-size:0.85em; max-width:600px; margin:0.6em auto 1.5em; line-height:1.5;">
           Questions, comments, or thoughts on formal state validation?
         </p>
+        <p style="font-size:0.6em; margin-bottom:1.5em;">
+          Read the full deep-dive blog post:<br>
+          <a href="https://abhay-ai.github.io/blog/neuro-symbolic-ai-prolog-llm" style="color:var(--cyan); text-decoration:underline;">abhay-ai.github.io/blog/neuro-symbolic-ai-prolog-llm</a>
+        </p>
         
         <div style="font-size:0.7em; color:var(--accent); margin-top:1.8em; font-family:'Fira Code', monospace;">
           Presented by Abhaya Kammara
@@ -1137,40 +1217,9 @@ grandparent(X, Z) :-
     </section>
 
     
-    <section data-background-color="#0d1117">
-      <span class="pill pill-blue">Bonus Slide 1 — Prompts</span>
-      <h2>The System Prompt: Core Philosophy</h2>
-      <p class="sub">Enforcing the boundary between probabilistic planning and symbolic ground truth</p>
 
-      <div class="grid-2" style="margin-top:0.4em;">
-        <div class="terminal" style="font-size:0.41em; line-height:1.35; padding:0.6em !important;">
-          <span class="c-muted"># System Prompt — Role Definition</span><br>
-          You are a blind grandmaster chess player. Because you are blind, you CANNOT see the board directly, and you have zero spatial vision.<br>
-          Your assistant, a symbolic Prolog referee, is watching the board for you. The referee's tool outputs are the absolute, non-negotiable ground truth.<br>
-          <br>
-          To play successfully, you must rely entirely on the referee to describe the board layout, threats, and checks. Any attempt to guess coordinates will result in a blunder. Trust the referee's reports implicitly!
-        </div>
-        <div class="card" style="border-color:var(--accent); height:100%; margin-bottom:0 !important;">
-          <h4 style="color:var(--accent); margin-bottom:0.15em !important;">Why the Persona Works</h4>
-          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
-            <strong>1. Pruning Spatial Hallucinations:</strong> Telling the model it is "blind" actively suppresses its reliance on faulty internal spatial representations.
-          </p>
-          <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
-            <strong>2. Enforced Tool Dependency:</strong> The prompt positions the Prolog referee tools as the sole information channel, increasing tool-calling fidelity.
-          </p>
-          <p style="font-size:0.58em !important; line-height:1.35 !important;">
-            <strong>3. Critical Checklist:</strong> The prompt mandates verifying check status, double-check scenarios, piece development, and board tension.
-          </p>
-        </div>
-      </div>
-      <aside class="notes">
-        By instructing the model that it is "blind" and has zero spatial vision, we suppress the transformer's tendency to predict likely-looking coordinate strings and force it to rely purely on the structured facts injected by Prolog.
-      </aside>
-    </section>
-
-    
     <section data-background-color="#0d1117">
-      <span class="pill pill-blue">Bonus Slide 2 — Prompts</span>
+      <span class="pill pill-blue">Appendix — Prompt Design</span>
       <h2>The System Prompt: Minimax Utility</h2>
       <p class="sub">Formulating candidate move selection as a constraint optimization problem</p>
 
@@ -1204,7 +1253,7 @@ grandparent(X, Z) :-
 
     
     <section data-background-color="#0d1117">
-      <span class="pill pill-blue">Bonus Slide 3 — Prompts</span>
+      <span class="pill pill-blue">Appendix — Self-Correction</span>
       <h2>Prompt Engineering: Self-Correction</h2>
       <p class="sub">Recovering from logical constraint violations via explanation feedback loops</p>
 
@@ -1241,7 +1290,7 @@ grandparent(X, Z) :-
 
     
     <section data-background-color="#0d1117">
-      <span class="pill pill-blue">Future Plans — Optimization</span>
+      <span class="pill pill-blue">Appendix — Prompt Optimization</span>
       <h2>Automated Prompt Optimization</h2>
       <p class="sub">Proposed loop for systematically evolving agent instructions from execution logs</p>
 
@@ -1261,7 +1310,7 @@ grandparent(X, Z) :-
         <div class="card" style="border-color:var(--pink); height:100%; margin-bottom:0 !important;">
           <h4 style="color:var(--pink); margin-bottom:0.15em !important;">Planned Optimization Pipeline</h4>
           <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
-            <strong>1. Autopsy log analysis:</strong> A higher-tier model (e.g., Fable 5) will evaluate execution trace CSVs/JSONLs of lower-tier agents (e.g., Gemma 26B).
+            <strong>1. Autopsy log analysis:</strong> A higher-tier model (e.g., Fable 5) will evaluate execution trace CSVs/JSONLs of lower-tier agents (e.g., gemma-2-27b).
           </p>
           <p style="font-size:0.58em !important; line-height:1.35 !important; margin-bottom:0.4em !important;">
             <strong>2. Systematic Rule Synthesis:</strong> Instead of manual trial-and-error, failure traces will be mapped to declarative text prompts (such as adding the $-0.5$ tension penalty).
@@ -1281,7 +1330,7 @@ grandparent(X, Z) :-
 
     
     <section data-background-color="#0d1117">
-      <span class="pill pill-blue">Future Plans — Architecture</span>
+      <span class="pill pill-blue">Appendix — Meta-Harness Architecture</span>
       <h2>The Proposed Meta-Harness</h2>
       <p class="sub">Decoupling active runtime execution from prompt optimization cycles</p>
 
@@ -1344,6 +1393,39 @@ grandparent(X, Z) :-
 
     
     <section data-background-color="#0d1117">
+      <span class="pill pill-blue">Appendix — Live Demo Fallback</span>
+      <h2>Live Demo Fallback: Constraint Violation</h2>
+      <p class="sub">Refining agent actions through deterministic Prolog check-paths</p>
+
+      <div class="grid-2" style="margin-top:0.4em; gap:1.2em;">
+        <div>
+          <p style="font-size:0.65em; color:var(--muted); font-weight:700; margin-bottom:0.4em; text-transform:uppercase; letter-spacing:0.05em;">Interactive State</p>
+          <div class="terminal" style="font-size:0.43em; line-height:1.45; padding:0.6em !important;">
+            <span class="c-muted"># FEN Position (Bishop pinning Knight):</span><br>
+            r1bqk2r/ppp2ppp/2n5/1B1pp3/4P3/3P1N2/PPP2PPP/RNBQK2R b KQkq - 0 5<br><br>
+            <span class="c-muted"># Agent Proposes Illegal Move:</span><br>
+            c6d4<br><br>
+            <span class="c-red"># Prolog Referee Intercepts:</span><br>
+            ILLEGAL: Knight on c6 is pinned to the King by the Bishop on b5. Moving it exposes your King to check.
+          </div>
+        </div>
+
+        <div class="card" style="border-color:var(--cyan); height:100%; margin-bottom:0 !important; display:flex; flex-direction:column; justify-content:center;">
+          <h4 style="color:var(--cyan); margin-bottom:0.3em !important;">Why the Fallback Succeeds</h4>
+          <ul>
+            <li style="font-size:0.58em !important; line-height:1.4 !important; margin-bottom:0.4em !important;"><strong>No guesswork:</strong> The LLM does not guess the rule violation. The constraint check returns a direct geometric proof tree.</li>
+            <li style="font-size:0.58em !important; line-height:1.4 !important; margin-bottom:0.4em !important;"><strong>Failsafe execution:</strong> The middleware intercepts the transaction before it is sent to the chess engine, protecting state.</li>
+            <li style="font-size:0.58em !important; line-height:1.4 !important;"><strong>Standardized API:</strong> This exact response format is standardized via FastMCP, allowing plug-and-play with any frontier model.</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        If the network or live environment fails during the demo, this slide serves as a visual walkthrough. It demonstrates how a pin violation is caught and explained semantically by Prolog.
+      </aside>
+    </section>
+
+    
+    <section data-background-color="#0d1117">
       <div style="text-align:center; padding:0.8em 0;">
         <div style="font-size:2.8em; margin-bottom:0.4em;">♟️</div>
         <h2>Live Demo &amp; Q&amp;A</h2>
@@ -1365,12 +1447,15 @@ grandparent(X, Z) :-
             <p><code>abhay-ai.github.io/R_Daneel_AI</code></p>
           </div>
           <div class="card" style="text-align:center;">
-            <h4>Python Library</h4>
-            <p><code>pip install queen-chess</code></p>
+            <h4>Git Repository ⚙️</h4>
+            <p><code>github.com/abhay-ai/R_Daneel_AI</code></p>
           </div>
         </div>
 
-        <p style="font-size:0.65em; color:var(--muted); margin-top:1.2em;">Questions welcome — including difficult ones 🙂</p>
+        <p style="font-size:0.55em; color:var(--muted); margin-top:0.8em; margin-bottom:0.4em;">
+          Companion Blog Post: <a href="https://abhay-ai.github.io/blog/neuro-symbolic-ai-prolog-llm" style="color:var(--cyan); text-decoration:underline;">abhay-ai.github.io/blog/neuro-symbolic-ai-prolog-llm</a>
+        </p>
+        <p style="font-size:0.65em; color:var(--muted); margin-top:0.3em; margin-bottom:0 !important;">Questions welcome — including difficult ones 🙂</p>
       </div>
       <aside class="notes">
         Demo tip: for the pin position use FEN
