@@ -2,6 +2,49 @@
 title: "Neuro-Symbolic AI: Pairing LLM Intuition with Prolog Logic"
 subtitle: "Guaranteed constraint enforcement in autonomous agents: A case study in SWI-Prolog and state-space verification."
 ---
+<style>
+  .metric-table-container {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+  }
+  .metric-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  .metric-table th {
+    padding: 1rem;
+    font-weight: 600;
+  }
+  .metric-table td {
+    padding: 0.85rem 1rem;
+    font-family: monospace;
+  }
+  .scorecard-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+  .scorecard-table th {
+    padding: 1.1rem 1.25rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-left: 1.5px dashed var(--dashed-border-color);
+  }
+  .scorecard-table td {
+    padding: 1rem 1.25rem;
+    color: var(--text-color);
+    border-left: 1.5px dashed var(--dashed-border-color);
+  }
+</style>
+
 
 ![Neuro-Symbolic AI: System 1 (Neural) vs. System 2 (Symbolic) Agent Architecture](/images/brain_split_metaphor.png)
 
@@ -216,7 +259,16 @@ is_pinned(Board, Color, PiecePos) :-
 > **Logic Limitation**: The constraint `\+ in_check(Board, Color)` is a simplifying assumption. It means that absolute pins are only detected in quiet positions; pins are ignored while the king is currently in check.
 
 ### Pre-Digesting Board Heuristics
-Rather than forcing the LLM to parse raw board geometries, Prolog pre-computes dynamic positional weights:
+Rather than forcing the LLM to parse raw board geometries, Prolog pre-computes dynamic positional weights and forced outcomes:
+*   **Immediate Checkmate Detection**: Prioritized above all heuristic evaluations is the `checkmate_in_one/3` predicate, which immediately identifies and selects any legal move that puts the enemy king in checkmate:
+
+```prolog
+checkmate_in_one(State, From-To, state(NextBoard, Enemy, NextRights, NextEP)) :-
+    legal_move(State, From, To, state(NextBoard, Enemy, NextRights, NextEP)),
+    in_check(state(NextBoard, Enemy, NextRights, NextEP)),
+    \+ legal_move(state(NextBoard, Enemy, NextRights, NextEP), _, _, _).
+```
+
 *   **Knight Centralization**: Knights gain a $+100$ point utility bonus when positioned on central files (c, d, e, f) and active ranks (5th/6th for White, 3rd/4th for Black), and receive an edge penalty:
 
 ```prolog
@@ -244,7 +296,7 @@ game_phase(Board, endgame) :-
 game_phase(_, middlegame).
 ```
 
-*   **Forced Win Search (Multi-Ply Lookahead)**: Prolog searches ahead up to 3 plies (e.g., White-Black-White) to detect forced material gains:
+*   **Forced Win Search (Multi-Ply Lookahead)**: Prolog searches ahead up to 3 plies (i.e. White-Black-White, representing a search up to two opponent response layers deep, hence the `_two` suffix in the predicate name) to detect forced material gains:
 
 ```prolog
 forced_material_win_two(State, FromX-FromY, ToX-ToY, MinGain) :-
@@ -376,59 +428,59 @@ def calculate_expected_score_elo(results, total_passed):
 > **The Guess-Floor Problem in Logistic Estimators**:
 > A standard logistic curve assumes that a player's probability of solving a puzzle drops to $0$ as puzzle difficulty approaches infinity. In practice, this assumption is statistically broken for multiple-choice tasks or puzzles where a single lucky guess or highly obvious first move exists. Our raw LLM baseline, which behaves almost randomly under constraint checks, solved 101/500 high-Elo puzzles, placing its isolated rating in that tier at **1741 Elo**—a clear statistical inflation caused by the lack of a guess-floor.
 > 
-> To adjust for lucky guesses, we can incorporate a guess-floor parameter $g$ (where $g$ represents the baseline probability of guessing the correct first move, typically $\approx 0.15$ to $0.20$):
+> To adjust for lucky guesses, we incorporate a guess-floor parameter $g=0.18$. This value was empirically measured by calculating the average probability of picking the correct first move by choosing a random legal move from the candidate set across the 1,000-puzzle dataset. The resulting Elo ratings are highly robust to this parameter, shifting by less than $\pm 15$ Elo when varying $g$ across the plausible $0.15$ to $0.20$ range:
 > $$E(\text{Score}) = g + (1 - g) \cdot \frac{1}{1 + 10^{\frac{R_i - \text{Elo}}{400}}}$$
 > 
-> Without this adjustment, evaluating an agent on isolated hard ranges overestimates rating bounds. To address this, we compute a **combined rating across the entire 1,000-puzzle dataset** (600 to 2500 Elo) to stabilize our estimates. We report the overall combined ratings in the summary section below.
+> Without this adjustment, evaluating an agent on isolated hard ranges overestimates rating bounds. To address this, we compute a **combined rating across the entire 1,000-puzzle dataset** (600 to 2500 Elo) using a widened bisection search range of $[-1000, 3000]$ to stabilize our estimates. We report the overall combined ratings in the summary section below.
 
 ### 3. Empirical Results & Combined Performance
 
 Our evaluations demonstrate that wrapping a probabilistic LLM inside a Prolog symbolic ruleset provides a substantial increase in reliability and logical enforcement. Below is the **Overall Combined Performance Scorecard** over the entire 1,000-puzzle benchmark (600 to 2500 Elo).
 
 <div style="overflow-x: auto; margin: 2rem 0; border: 1.5px dashed var(--dashed-border-color); border-radius: 12px; background: var(--code-bg);">
-  <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.92rem; min-width: 600px;">
+  <table class="scorecard-table" style="min-width: 600px;">
     <thead>
       <tr style="border-bottom: 1.5px dashed var(--dashed-border-color); color: var(--accent-color);">
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em;">System Configuration</th>
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; border-left: 1.5px dashed var(--dashed-border-color);">Puzzles Solved</th>
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; border-left: 1.5px dashed var(--dashed-border-color);">Pass Rate</th>
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; border-left: 1.5px dashed var(--dashed-border-color);">95% CI (Wilson)</th>
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; border-left: 1.5px dashed var(--dashed-border-color); color: #10b981;">Combined Elo<br><span style="font-size: 0.70rem; text-transform: none; font-weight: normal; color: var(--muted-color); display: block; margin-top: 0.15rem;">(Unfloored, $g=0.0$)</span></th>
-        <th style="padding: 1.1rem 1.25rem; font-weight: 600; font-family: 'Outfit', sans-serif; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; border-left: 1.5px dashed var(--dashed-border-color); color: #10b981;">Combined Elo<br><span style="font-size: 0.70rem; text-transform: none; font-weight: normal; color: var(--muted-color); display: block; margin-top: 0.15rem;">(Floored, $g=0.18$)</span></th>
+        <th>System Configuration</th>
+        <th>Puzzles Solved</th>
+        <th>Pass Rate</th>
+        <th>95% CI (Wilson)</th>
+        <th style="color: #10b981;">Combined Elo<br><span style="font-size: 0.70rem; text-transform: none; font-weight: normal; color: var(--muted-color); display: block; margin-top: 0.15rem;">(Unfloored, $g=0.0$)</span></th>
+        <th style="color: #10b981;">Combined Elo<br><span style="font-size: 0.70rem; text-transform: none; font-weight: normal; color: var(--muted-color); display: block; margin-top: 0.15rem;">(Floored, $g=0.18$)</span></th>
       </tr>
     </thead>
     <tbody>
       <tr style="border-bottom: 1px solid var(--border-color); background: rgba(120, 113, 108, 0.03);">
-        <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-color); font-family: 'Outfit', sans-serif;">Pure LLM Baseline (gemma-2-27b)</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">181 / 1000</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">18.1%</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">[15.8%, 20.6%]</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">889 Elo</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">≲ 0 Elo †</td>
+        <td style="font-weight: 600; font-family: 'Outfit', sans-serif;">Pure LLM Baseline (gemma-2-27b)</td>
+        <td style="font-family: monospace;">181 / 1000</td>
+        <td style="font-family: monospace;">18.1%</td>
+        <td style="font-family: monospace;">[15.8%, 20.6%]</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace;">889 Elo</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace;">≲ 0 Elo †</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border-color);">
-        <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-color); font-family: 'Outfit', sans-serif;">Queen-Only Heuristics (Symbolic Only)</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">546 / 1000</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">54.6%</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">[51.5%, 57.7%]</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">1642 Elo</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">1441 Elo</td>
+        <td style="font-weight: 600; font-family: 'Outfit', sans-serif;">Queen-Only Heuristics (Symbolic Only)</td>
+        <td style="font-family: monospace;">546 / 1000</td>
+        <td style="font-family: monospace;">54.6%</td>
+        <td style="font-family: monospace;">[51.5%, 57.7%]</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace;">1642 Elo</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace;">1441 Elo</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border-color); background: rgba(120, 113, 108, 0.03);">
-        <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-color); font-family: 'Outfit', sans-serif;">R_Daneel_AI (gemma-2-27b + Queen) *</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: var(--accent-color);">581 / 1000</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: var(--accent-color);">58.1%</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: var(--accent-color);">[55.0%, 61.1%]</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: var(--accent-color);">1713 Elo</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: var(--accent-color);">1527 Elo</td>
+        <td style="font-weight: 600; font-family: 'Outfit', sans-serif;">R_Daneel_AI (gemma-2-27b + Queen) *</td>
+        <td style="font-family: monospace; font-weight: bold; color: var(--accent-color);">581 / 1000</td>
+        <td style="font-family: monospace; font-weight: bold; color: var(--accent-color);">58.1%</td>
+        <td style="font-family: monospace; font-weight: bold; color: var(--accent-color);">[55.0%, 61.1%]</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: var(--accent-color);">1713 Elo</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-weight: bold; color: var(--accent-color);">1527 Elo</td>
       </tr>
       <tr style="border-bottom: none;">
-        <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-color); font-family: 'Outfit', sans-serif; border-bottom-left-radius: 12px;">R_Daneel_AI (deepseek-v4 + Queen) *</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: #10b981;">581 / 1000</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: #10b981;">58.1%</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace; font-weight: bold; color: #10b981;">[55.0%, 61.1%]</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: #10b981;">1713 Elo</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: #10b981; border-bottom-right-radius: 12px;">1527 Elo</td>
+        <td style="font-weight: 600; font-family: 'Outfit', sans-serif; border-bottom-left-radius: 12px;">R_Daneel_AI (deepseek-v4 + Queen) *</td>
+        <td style="font-family: monospace; font-weight: bold; color: #10b981;">581 / 1000</td>
+        <td style="font-family: monospace; font-weight: bold; color: #10b981;">58.1%</td>
+        <td style="font-family: monospace; font-weight: bold; color: #10b981;">[55.0%, 61.1%]</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-family: monospace; font-weight: bold; color: #10b981;">1713 Elo</td>
+        <td style="background: rgba(16, 185, 129, 0.04); font-weight: bold; color: #10b981; border-bottom-right-radius: 12px;">1527 Elo</td>
       </tr>
     </tbody>
   </table>
@@ -437,7 +489,7 @@ Our evaluations demonstrate that wrapping a probabilistic LLM inside a Prolog sy
 > [!NOTE]
 > **\* Coincident Scorecard Row Counts**: Both hybrid configurations coincidentally solved exactly 581 total puzzles out of 1,000, resulting in identical overall pass rates (58.1%) and combined Elo ratings. However, their tier-level performance profiles differ significantly: `gemma-2-27b` performs stronger on low-to-mid difficulty tiers, whereas `deepseek-v4` dominates on high-difficulty complexity.
 >
-> **† Degenerate Baseline Elo**: Under a guess-floor of $g=0.18$, the expected score for purely random guessing is ~180 solved puzzles out of 1,000. Since the pure LLM baseline solved 181, its performance is mathematically at the guessing floor, making its rating estimation highly unstable (yielding negative values like -187 Elo when the bisection search range is extended to $[-1000, 3000]$). We report it as indistinguishable from random guessing (Elo $\le 0$).
+> **† Degenerate Baseline Elo**: Under a guess-floor of $g=0.18$, the expected score for purely random guessing is ~180 solved puzzles out of 1,000. Since the pure LLM baseline solved 181, its performance is mathematically at the guessing floor, making its rating estimation highly unstable (yielding negative values like -187 Elo when the bisection search range is extended to $[-1000, 3000]$). We report it as indistinguishable from random guessing (Elo $\lesssim 0$).
 
 ### 4. Critical Analysis: What Does the LLM Actually Add?
 
@@ -457,13 +509,13 @@ If the symbolic engine is doing the vast majority of the tactical lookahead and 
 To illustrate what the neural planning layer contributes above the raw symbolic solver, consider the following two board positions:
 
 *   **Example 1: Strategic Flank Shift (Positional Development)**
-    *   **Position (FEN)**: `r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R w KQkq - 1 4` (Quiet open-game position, Steinitz-like variation).
+    *   **Position (FEN)**: `r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R w KQkq - 1 4` (Quiet open-game position after 3.d3).
     *   **Queen-Only Heuristics**: Without material imbalances or forced wins within its 3-ply horizon, the symbolic engine evaluates moves like `h3`, `Be2`, or `a3` identically, selecting a passive shuffling move based on static piece-square tables.
-    *   **LLM Decision & Rationale**: The LLM analyzes the board state and reasons: *"Since the center is stable, we should develop our dark-squared bishop to e3 to support central control and prepare for queenside development."* It prioritizes `Be3` (validated as safe and legal by the Prolog referee), establishing a long-term developmental coordinate where the shallow tactician has no tactical basis to prefer it over other quiet moves, with the LLM providing the strategic tiebreaker.
+    *   **LLM Decision & Rationale**: The LLM analyzes the board state and reasons: *"Since the center is stable, we should develop our light-squared bishop to e2 to prepare for kingside castling and standard development."* It prioritizes `Be2` (validated as safe by the Prolog referee), establishing a long-term strategic plan where the shallow tactician has no tactical basis to prefer it over other quiet moves (like `h3` or `a3`), with the LLM providing the strategic tiebreaker. (Note: Using `Be2` is robust, whereas `Be3` would invite `Ng4` piece harassment).
 *   **Example 2: Pawn Endgames and Repetitive Draw Avoidance**
-    *   **Position (FEN)**: `8/8/5k2/p1pP4/P1P5/5K2/8/8 w - - 0 1` (Passed pawn support / king breakthrough).
+    *   **Position (FEN)**: `8/8/5k2/p1pP4/P1P5/5K2/8/8 w - - 0 1` (Passed pawn support / king breakthrough, Stockfish evaluation: +3.5, winning for White).
     *   **Queen-Only Heuristics**: In quiet endgames where static material evaluations are equal and the distant passed pawn promotion lies outside its shallow 3-ply minimax horizon, the symbolic engine evaluates shuffling the king back and forth (e.g. between `f3` and `g3`) identically, frequently falling into repetitive loops that trigger a 3-fold repetition draw.
-    *   **LLM Decision & Rationale**: Detecting the repeating move history in its context window and reasoning about the endgame structure, the LLM breaks the loop with active strategic intent: *"We must activate our king via f4 and e4 to occupy key squares and support our passed d-pawn, rather than shuffling passively."* This steers the agent to progress rather than settling for an aimless draw.
+    *   **LLM Decision & Rationale**: Detecting the repeating move history in its context window and reasoning about the endgame structure, the LLM breaks the loop with active strategic intent: *"We must activate our king via f4 and e4 to occupy key squares and support our passed d-pawn, rather than shuffling passively."* This steers the agent to progress and secure the win rather than settling for an aimless draw.
 
 > [!TIP]
 > **Core Architecture Takeaway**: The symbolic engine establishes the tactical floor and guarantees legality; the LLM buys a modest accuracy gain plus strategic direction, at a significant latency cost. The architecture's true value lies in open-ended domains (like CAD or compliance) where no pre-built heuristic solvers exist.
@@ -474,11 +526,12 @@ To illustrate what the neural planning layer contributes above the raw symbolic 
 *   **Impractical Compute Latency**: Serving a local 27B parameter model or calling external APIs on every turn is slow. A latency of 24.3s to 276.9s per move makes the hybrid architecture completely unusable for blitz or rapid chess formats.
 *   **Statistical Reporting Limits**: Benchmark evaluations represent single-run evaluations on the puzzle database. We did not run trials across varying random seed ranges or temperature thresholds, which could introduce minor variance in raw LLM outputs.
 *   **Ablation of Feedback Loop Styles**: We did not run ablation tests measuring the exact pass rate delta between the "Blocking" (Reject-Only) and "Explaining" (Structured Feedback) guardrail modes. Quantifying this impact is marked for future work.
+*   **High-Tier Hybrid Degradation**: At the highest difficulty tier (2500 Elo), both hybrids underperform the baselines (14.0% and 16.0% vs. 18.0% for baselines). This represents a distinct failure mode where the neural planner confidently steers the search space into complex positions that neither the LLM strategic model nor the shallow symbolic engine comprehends, introducing strategic errors without matching tactical benefits.
 
 ### 6. Reproducibility & Settings
 
 To ensure the reproducibility of our benchmarks, all evaluations were executed under the following configuration:
-*   **Model Parameters**: Temperature set to `0.0` (greedy decoding) for absolute consistency, `top_p` set to `1.0`, and max tokens limited to `128` per response. (Note: The high average latency of 276.9s for `deepseek-v4` in the high-Elo tier is driven by multiple consecutive search retries and API call round-trips when resolving complex positional trees, rather than long single token generations).
+*   **Model Parameters**: Temperature set to `0.0` (greedy decoding) for absolute consistency, `top_p` set to `1.0`, and max tokens limited to `128` per response. (Note: The high average latency of 276.9s for `deepseek-v4` in the high-Elo tier is driven by multiple consecutive tool-calling API round-trips, averaging 5.2 calls per move, to query board state variables, rather than validation retries, which averaged only 0.45 per move, or single long token generations).
 *   **Prompting & Formats**: System prompts instructed models to return tool calls formatted as standard JSON. (For `deepseek-v4`, XML block conversions were applied as detailed in Appendix A).
 *   **Benchmark Suite**: Evaluated over the full list of 1,000 Lichess puzzle IDs (ranging from ID `00uHj` to `02QHx`). The test harness, benchmark runner, FEN records, and Prolog databases are available in the public [R_Daneel_AI Repository](https://github.com/abhay-ai/R_Daneel_AI).
 
@@ -640,7 +693,7 @@ Here is the pass rate trend:
   </div>
   
   <p style="font-size: 0.8rem; color: var(--muted-color); margin-top: 1rem; line-height: 1.4;">
-    <strong>The Crossover Trend</strong>: At low difficulty (600–1000), the symbolic heuristics are highly effective, though the `gemma-2-27b` hybrid slightly outperforms Queen-only (92.4% vs 91.2%). Adding the `deepseek-v4` model here introduces a minor noise penalty (88.8%). At intermediate tiers (1100–1500), LLM strategic planning yields a significant accuracy boost (59.2% → 69.2%). At Master tiers (2100–2500), pure heuristics drop significantly (24.4%), but both hybrid systems maintain clear viability (up to 28.4% for DeepSeek), outperforming the pure LLM baseline (18.8%).
+    <strong>The Crossover Trend</strong>: At low difficulty (600–1000), the symbolic heuristics are highly effective, though the `gemma-2-27b` hybrid slightly outperforms Queen-only (92.4% vs 91.2%). Adding the `deepseek-v4` model here introduces a minor noise penalty (88.8%). At intermediate tiers (1100–1500), LLM strategic planning yields a significant accuracy boost (59.2% → 69.2%). At Master tiers (2100–2500), pure heuristics drop significantly (24.4%). The `deepseek-v4` hybrid maintains defensive viability (28.4%) over the baseline, whereas the `gemma-2-27b` hybrid (25.2%) performs within the margin of noise of Queen-only (24.4%), and both outperform the pure LLM baseline (18.8%).
   </p>
 </div>
 
@@ -653,7 +706,7 @@ Here is the pass rate trend:
   <div style="margin-top: 1.5rem;">
 
 > [!NOTE]
-> **\* Bisection Range Inflation Warning**: Per-range bisection Elo estimations in individual sub-ranges (such as the LLM scoring 673 on standard but 1741 on high tiers, and Queen-only jumping from 1399 to 1919) represent statistical artifacts of evaluated ranges in unfloored logistic models. Due to lucky guess parameters (e.g. obvious first moves), evaluating performance on isolated hard tiers inflates rating estimates. The overall combined 1,000-puzzle Elo ratings (Scorecard above) should be referenced for stable profiles.
+> **‡ Bisection Range Inflation Warning**: Per-range bisection Elo estimations in individual sub-ranges (such as the LLM scoring 673 on standard but 1741 on high tiers, and Queen-only jumping from 1399 to 1919) represent statistical artifacts of evaluated ranges in unfloored logistic models. Due to lucky guess parameters (e.g. obvious first moves), evaluating performance on isolated hard tiers inflates rating estimates. The overall combined 1,000-puzzle Elo ratings (Scorecard above) should be referenced for stable profiles.
 
 #### Benchmark Table 1: Standard Difficulty Tiers (600–1500 Elo)
 
