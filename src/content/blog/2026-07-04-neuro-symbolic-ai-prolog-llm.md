@@ -24,7 +24,7 @@ When designing autonomous agents, we often refer to the dual-process theory of h
 
 In modern AI engineering, we have built incredibly capable probabilistic neural models (LLMs) that act like System 1. They excel at high-level planning, semantic synthesis, and intuitive strategy. However, when tasked with strict System 2 constraints—such as absolute spatial coordinate validation, rule compliance, or long-term state-space tracking—they frequently experience coordinate hallucinations and break down.
 
-To build reliable agents, we must bridge this gap. This post presents a **Neuro-Symbolic architecture** that wraps a probabilistic neural System 1 LLM (Gemma 2 27B, DeepSeek-V4) inside a deterministic symbolic System 2 ruleset written in **SWI-Prolog**. Using chess as a formal testbed, we demonstrate how this hybrid approach raises the agent's absolute pass rate by **40 percentage points** (from **18.1% to 58.1%**, representing a **3.2x relative accuracy increase**), elevating its combined rating from **889 Elo to 1713 Elo** (or **-187 Elo to 1527 Elo** when adjusted for random guessing) without any model fine-tuning.
+To build reliable agents, we must bridge this gap. This post presents a **Neuro-Symbolic architecture** that wraps a probabilistic neural System 1 LLM (Gemma 2 27B, DeepSeek-V4) inside a deterministic symbolic System 2 ruleset written in **SWI-Prolog**. Using chess as a formal testbed, we demonstrate how this hybrid approach raises the agent's absolute pass rate by **40 percentage points** (from **18.1% to 58.1%**, representing a **3.2x relative accuracy increase**), elevating its combined rating from **889 Elo to 1713 Elo** (or from **indistinguishable from random guessing (Elo ≲ 0)** to **1527 Elo** when adjusted for a guess-floor) without any model fine-tuning.
 
 ---
 
@@ -404,7 +404,7 @@ Our evaluations demonstrate that wrapping a probabilistic LLM inside a Prolog sy
         <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">18.1%</td>
         <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); font-family: monospace;">[15.8%, 20.6%]</td>
         <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">889 Elo</td>
-        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">-187 Elo</td>
+        <td style="padding: 1rem 1.25rem; color: var(--text-color); border-left: 1.5px dashed var(--dashed-border-color); background: rgba(16, 185, 129, 0.04); font-family: monospace;">≲ 0 Elo †</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border-color);">
         <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-color); font-family: 'Outfit', sans-serif;">Queen-Only Heuristics (Symbolic Only)</td>
@@ -436,6 +436,8 @@ Our evaluations demonstrate that wrapping a probabilistic LLM inside a Prolog sy
 
 > [!NOTE]
 > **\* Coincident Scorecard Row Counts**: Both hybrid configurations coincidentally solved exactly 581 total puzzles out of 1,000, resulting in identical overall pass rates (58.1%) and combined Elo ratings. However, their tier-level performance profiles differ significantly: `gemma-2-27b` performs stronger on low-to-mid difficulty tiers, whereas `deepseek-v4` dominates on high-difficulty complexity.
+>
+> **† Degenerate Baseline Elo**: Under a guess-floor of $g=0.18$, the expected score for purely random guessing is ~180 solved puzzles out of 1,000. Since the pure LLM baseline solved 181, its performance is mathematically at the guessing floor, making its rating estimation highly unstable (yielding negative values like -187 Elo when the bisection search range is extended to $[-1000, 3000]$). We report it as indistinguishable from random guessing (Elo $\le 0$).
 
 ### 4. Critical Analysis: What Does the LLM Actually Add?
 
@@ -455,28 +457,28 @@ If the symbolic engine is doing the vast majority of the tactical lookahead and 
 To illustrate what the neural planning layer contributes above the raw symbolic solver, consider the following two board positions:
 
 *   **Example 1: Strategic Flank Shift (Positional Development)**
-    *   **Position (FEN)**: `r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R w KQkq - 1 4` (Quiet Four Knights opening).
+    *   **Position (FEN)**: `r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R w KQkq - 1 4` (Quiet open-game position, Steinitz-like variation).
     *   **Queen-Only Heuristics**: Without material imbalances or forced wins within its 3-ply horizon, the symbolic engine evaluates moves like `h3`, `Be2`, or `a3` identically, selecting a passive shuffling move based on static piece-square tables.
-    *   **LLM Decision & Rationale**: The LLM analyzes the board state and reasons: *"Since the center is stable, we should develop our dark-squared bishop to e3 to support central control and prepare for queenside development."* It prioritizes `Be3` (validated as safe and legal by the Prolog referee), establishing a long-term developmental coordinate that the shallow tactician misses.
+    *   **LLM Decision & Rationale**: The LLM analyzes the board state and reasons: *"Since the center is stable, we should develop our dark-squared bishop to e3 to support central control and prepare for queenside development."* It prioritizes `Be3` (validated as safe and legal by the Prolog referee), establishing a long-term developmental coordinate where the shallow tactician has no tactical basis to prefer it over other quiet moves, with the LLM providing the strategic tiebreaker.
 *   **Example 2: Pawn Endgames and Repetitive Draw Avoidance**
-    *   **Position (FEN)**: `8/8/8/8/8/6k1/6p1/6K1 w - - 0 1` (Blocked king pawn draw boundary).
-    *   **Queen-Only Heuristics**: In drawish, equal-material endgames where static heuristic evaluations are identical for several moves, the symbolic engine frequently falls into repetitive loops (moving the King back and forth) and triggers a 3-fold repetition draw.
-    *   **LLM Decision & Rationale**: Detecting the repeating move history in its context window, the LLM breaks the cycle with strategic intent: *"We must avoid repeating moves; shuffle the king towards the f-file to force the opponent's king to commit to a square, maintaining active pressure."*
+    *   **Position (FEN)**: `8/8/5k2/p1pP4/P1P5/5K2/8/8 w - - 0 1` (Passed pawn support / king breakthrough).
+    *   **Queen-Only Heuristics**: In quiet endgames where static material evaluations are equal and the distant passed pawn promotion lies outside its shallow 3-ply minimax horizon, the symbolic engine evaluates shuffling the king back and forth (e.g. between `f3` and `g3`) identically, frequently falling into repetitive loops that trigger a 3-fold repetition draw.
+    *   **LLM Decision & Rationale**: Detecting the repeating move history in its context window and reasoning about the endgame structure, the LLM breaks the loop with active strategic intent: *"We must activate our king via f4 and e4 to occupy key squares and support our passed d-pawn, rather than shuffling passively."* This steers the agent to progress rather than settling for an aimless draw.
 
 > [!TIP]
 > **Core Architecture Takeaway**: The symbolic engine establishes the tactical floor and guarantees legality; the LLM buys a modest accuracy gain plus strategic direction, at a significant latency cost. The architecture's true value lies in open-ended domains (like CAD or compliance) where no pre-built heuristic solvers exist.
 
 ### 5. Limitations & Caveats
 
-*   **Prolog Ruleset Simplifications**: To keep execution times reasonable, the rulesets make simplifying assumptions. For example, `is_pinned/3` does not evaluate absolute pins when the King is already in check, and the `forall/2` loop inside `forced_material_win_two/5` contains a stalemate trap where it vacuously succeeds if the opponent has no legal replies.
-*   **Impractical Compute Latency**: Serving a local 26B parameter model or calling external APIs on every turn is slow. A latency of 24.3s to 276.9s per move makes the hybrid architecture completely unusable for blitz or rapid chess formats.
+*   **Prolog Ruleset Simplifications**: To keep execution times reasonable, the rulesets make simplifying assumptions. For example, `is_pinned/3` does not evaluate absolute pins when the King is already in check. Additionally, a previous stalemate vulnerability in `forced_material_win_two/4` (where the `forall/2` loop vacuously succeeded if the opponent had zero replies) has been patched with a `once/1` guard check; however, this guard also discards checkmate lines. (Checkmate detection is handled separately by a high-priority `checkmate_in_one` predicate). A remaining limitation is the 3-ply horizon which ignores whether our winning capture on ply 3 is recaptured on ply 4.
+*   **Impractical Compute Latency**: Serving a local 27B parameter model or calling external APIs on every turn is slow. A latency of 24.3s to 276.9s per move makes the hybrid architecture completely unusable for blitz or rapid chess formats.
 *   **Statistical Reporting Limits**: Benchmark evaluations represent single-run evaluations on the puzzle database. We did not run trials across varying random seed ranges or temperature thresholds, which could introduce minor variance in raw LLM outputs.
 *   **Ablation of Feedback Loop Styles**: We did not run ablation tests measuring the exact pass rate delta between the "Blocking" (Reject-Only) and "Explaining" (Structured Feedback) guardrail modes. Quantifying this impact is marked for future work.
 
 ### 6. Reproducibility & Settings
 
 To ensure the reproducibility of our benchmarks, all evaluations were executed under the following configuration:
-*   **Model Parameters**: Temperature set to `0.0` (greedy decoding) for absolute consistency, `top_p` set to `1.0`, and max tokens limited to `128`.
+*   **Model Parameters**: Temperature set to `0.0` (greedy decoding) for absolute consistency, `top_p` set to `1.0`, and max tokens limited to `128` per response. (Note: The high average latency of 276.9s for `deepseek-v4` in the high-Elo tier is driven by multiple consecutive search retries and API call round-trips when resolving complex positional trees, rather than long single token generations).
 *   **Prompting & Formats**: System prompts instructed models to return tool calls formatted as standard JSON. (For `deepseek-v4`, XML block conversions were applied as detailed in Appendix A).
 *   **Benchmark Suite**: Evaluated over the full list of 1,000 Lichess puzzle IDs (ranging from ID `00uHj` to `02QHx`). The test harness, benchmark runner, FEN records, and Prolog databases are available in the public [R_Daneel_AI Repository](https://github.com/abhay-ai/R_Daneel_AI).
 
@@ -510,23 +512,23 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Queen-Only:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 92.8%; height: 100%;"></div>
+            <div style="background: #10b981; width: 91.2%; height: 100%;"></div>
           </div>
-          <span style="color: #10b981; font-weight: bold;">92.8%</span>
+          <span>91.2%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
             <div style="background: var(--accent-color); width: 92.4%; height: 100%;"></div>
           </div>
-          <span>92.4%</span>
+          <span style="color: var(--accent-color); font-weight: bold;">92.4%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 88.4%; height: 100%;"></div>
+            <div style="background: #3b82f6; width: 88.8%; height: 100%;"></div>
           </div>
-          <span>88.4%</span>
+          <span>88.8%</span>
         </div>
       </div>
     </div>
@@ -545,9 +547,9 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Queen-Only:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 57.6%; height: 100%;"></div>
+            <div style="background: #10b981; width: 59.2%; height: 100%;"></div>
           </div>
-          <span>57.6%</span>
+          <span>59.2%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
@@ -559,9 +561,9 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 67.6%; height: 100%;"></div>
+            <div style="background: #3b82f6; width: 67.2%; height: 100%;"></div>
           </div>
-          <span>67.6%</span>
+          <span>67.2%</span>
         </div>
       </div>
     </div>
@@ -573,16 +575,16 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Pure LLM:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 20.4%; height: 100%;"></div>
+            <div style="background: var(--muted-color); width: 21.6%; height: 100%;"></div>
           </div>
-          <span>20.4%</span>
+          <span>21.6%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Queen-Only:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 45.6%; height: 100%;"></div>
+            <div style="background: #10b981; width: 43.6%; height: 100%;"></div>
           </div>
-          <span>45.6%</span>
+          <span>43.6%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
@@ -594,9 +596,9 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 48.8%; height: 100%;"></div>
+            <div style="background: #3b82f6; width: 48.0%; height: 100%;"></div>
           </div>
-          <span style="color: #3b82f6; font-weight: bold;">48.8%</span>
+          <span style="color: #3b82f6; font-weight: bold;">48.0%</span>
         </div>
       </div>
     </div>
@@ -608,16 +610,16 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Pure LLM:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: var(--muted-color); width: 19.6%; height: 100%;"></div>
+            <div style="background: var(--muted-color); width: 18.8%; height: 100%;"></div>
           </div>
-          <span>19.6%</span>
+          <span>18.8%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Queen-Only:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #10b981; width: 17.6%; height: 100%;"></div>
+            <div style="background: #10b981; width: 24.4%; height: 100%;"></div>
           </div>
-          <span>17.6%</span>
+          <span>24.4%</span>
         </div>
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">Gemma Hybrid:</span>
@@ -629,16 +631,16 @@ Here is the pass rate trend:
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-family: monospace;">
           <span style="width: 120px; text-align: right;">DeepSeek Hybrid:</span>
           <div style="flex-grow: 1; background: rgba(120, 113, 108, 0.1); height: 10px; border-radius: 4px; overflow: hidden; max-width: 250px;">
-            <div style="background: #3b82f6; width: 27.6%; height: 100%;"></div>
+            <div style="background: #3b82f6; width: 28.4%; height: 100%;"></div>
           </div>
-          <span style="color: #3b82f6; font-weight: bold;">27.6%</span>
+          <span style="color: #3b82f6; font-weight: bold;">28.4%</span>
         </div>
       </div>
     </div>
   </div>
   
   <p style="font-size: 0.8rem; color: var(--muted-color); margin-top: 1rem; line-height: 1.4;">
-    <strong>The Crossover Trend</strong>: At low tiers (600–1000), the symbolic heuristics are sufficient; adding the LLMs actually introduces a minor noise penalty. At intermediate tiers (1100–1500), the LLM strategic intent yields a large accuracy boost (57.6% → 69.2%). At Master tiers (2100–2500), pure heuristics collapse completely (17.6%), but the hybrids maintain viability.
+    <strong>The Crossover Trend</strong>: At low difficulty (600–1000), the symbolic heuristics are highly effective, though the `gemma-2-27b` hybrid slightly outperforms Queen-only (92.4% vs 91.2%). Adding the `deepseek-v4` model here introduces a minor noise penalty (88.8%). At intermediate tiers (1100–1500), LLM strategic planning yields a significant accuracy boost (59.2% → 69.2%). At Master tiers (2100–2500), pure heuristics drop significantly (24.4%), but both hybrid systems maintain clear viability (up to 28.4% for DeepSeek), outperforming the pure LLM baseline (18.8%).
   </p>
 </div>
 
